@@ -1,0 +1,17 @@
+Package: SCTalk
+Type: Package
+Title: Single-cell talk - an R package for analysis of cell-cell communication networks from single-cell data.
+Version: 0.1.0
+Author: Ralph Patrick
+Maintainer: Ralph Patrick <ralph.j.patrick@gmail.com>
+Description: TODO
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+Imports:
+    Seurat,
+    ggplot2,
+    dplyr,
+    igraph,
+    STRINGdb
+RoxygenNote: 6.1.1
