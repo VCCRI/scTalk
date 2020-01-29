@@ -160,53 +160,92 @@ GenerateEdgeWeights <- function(seurat.object,
 #'
 #'
 #' @param file.label a list of genes
+#' @param populations.use the cell populations to use (default is all)
 #' @param min.weight minimum weight for retaining a path
+#' @param ncores number of cores for parallelisation
 #'
 #' @return NULL - results written to file
 #'
 #' @export
 #'
 GenerateNetworkPaths <- function(file.label,
-                                 min.weight = 1.5)
+                                 populations.use = NULL,
+                                 min.weight = 1.5,
+                                 ncores = 1)
   {
 
-  edge.score.file = paste0(file.label, "_all_ligand_receptor_network_edges.csv")
-  score.table = read.csv(edge.score.file)
+  if (is.null(populations.use)) {
+    populations.use <- names(table(Idents(seurat.object)))
+  }
 
-  all.weights = score.table$weight
-  all.edges = score.table[, c("source", "target")]
+  edge.score.file <- paste0(file.label, "_all_ligand_receptor_network_edges.csv")
+  score.table <- read.csv(edge.score.file)
 
-  populations.test = clusters.use
+  all.weights <- score.table$weight
+  all.edges <- score.table[, c("source", "target")]
+
+  populations.test <- populations.use
+
+  # Set up multiple workers
+  system.name <- Sys.info()['sysname']
+  new_cl <- FALSE
+  if (system.name == "Windows") {
+    new_cl <- TRUE
+    cluster <- parallel::makePSOCKcluster(rep("localhost", ncores))
+    doParallel::registerDoParallel(cluster)
+  } else {
+    doParallel::registerDoParallel(cores=ncores)
+  }
+
+  SeuratObjectFilter <- function(x) class(get(x)) == "Seurat"
+  seurat.objs <- ls()[unlist(lapply(ls(), SeuratObjectFilter))]
 
   ## Go through and calculate summed path weights from source to target populations
   ## Minimum weight of 1.5 to select for paths with some up-regulation (in ligand, receptor or both)
-  complete.path.table = c()
-  for (s.pop in populations.test) {
+  complete.path.table <- foreach::foreach(s.pop = populations.test,
+                                   .combine = 'rbind',
+                                   .noexport = seurat.objs) %dopar%
+  {
+    target.path.table <- c()
     for (t.pop in populations.test) {
-      source.population = paste0("S:", s.pop)
-      target.population = paste0("T:", t.pop)
-      this.path.table = get_weighted_paths(score.table, source.population = source.population,
-                                           target.population = target.population, min.weight = min.weight)
-      complete.path.table = rbind(complete.path.table, this.path.table)
+      source.population <- paste0("S:", s.pop)
+      target.population <- paste0("T:", t.pop)
+      this.path.table <- get_weighted_paths(score.table,
+                                           source.population = source.population,
+                                           target.population = target.population,
+                                           min.weight = min.weight)
+      target.path.table <- rbind(target.path.table, this.path.table)
     }
+    return(target.path.table)
   }
-  dim(complete.path.table)
 
   write.csv(complete.path.table, file = paste0(file.label, "_network_paths_weight", min.weight, ".csv"))
 
   ## Generate a background set of paths for permutation testing
   ## Set mimimum weight to -100 to capture all paths
-  background.path.table = c()
-  for (s.pop in populations.test) {
+  background.path.table <- foreach::foreach(s.pop = populations.test,
+                                          .combine = 'rbind',
+                                          .noexport = seurat.objs) %dopar%
+
+  {
+    target.path.table <- c()
     for (t.pop in populations.test) {
-      source.population = paste0("S:", s.pop)
-      target.population = paste0("T:", t.pop)
-      this.path.table = get_weighted_paths(score.table, source.population = source.population,
-                                           target.population = target.population, min.weight = -100)
-      background.path.table = rbind(background.path.table, this.path.table)
+      source.population <- paste0("S:", s.pop)
+      target.population <- paste0("T:", t.pop)
+      this.path.table <- get_weighted_paths(score.table,
+                                            source.population = source.population,
+                                           target.population = target.population,
+                                           min.weight = -100)
+      target.path.table <- rbind(target.path.table, this.path.table)
     }
+    return(target.path.table)
   }
   dim(background.path.table)
+
+  if (new_cl) { ## Shut down cluster if on Windows
+    ## stop cluster
+    parallel::stopCluster(cluster)
+  }
 
   write.csv(background.path.table, file = paste0(file.label, "_background_paths.csv"))
 
@@ -313,7 +352,7 @@ EvaluateConnections <- function(file.label,
 
         random.paths = rep(NA, num_total)
         random.weight.sums = rep(NA, num_total)
-        for (i in 1:10000) {
+        for (i in 1:num.permutations) {
           random.weights = randomise_FC_weights(ppi.weights, cluster.ligand.table, receptor.cluster.table)
           random.weights = random.weights[random.weights >= 1.5]
 
@@ -336,6 +375,10 @@ EvaluateConnections <- function(file.label,
       return(table.subset)
   }
 
+  if (new_cl) { ## Shut down cluster if on Windows
+    ## stop cluster
+    parallel::stopCluster(cluster)
+  }
 
   ## Do P-value adjustment for multiple testing
   pval.adj = p.adjust(pvalue.table$Sum_path_pvalue, method = "BH")
