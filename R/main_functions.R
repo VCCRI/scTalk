@@ -15,6 +15,8 @@
 #'
 #' @return NULL - results written to file
 #'
+#' @export
+#'
 GenerateEdgeWeights <- function(seurat.object,
                                 out.label,
                                 species,
@@ -143,23 +145,28 @@ GenerateEdgeWeights <- function(seurat.object,
 
 }
 
-#######################################################################
-### Generates files of cluster:ligand:receptor:cluster edge weights ###
-#######################################################################
+######################################################################
+### Generates files of weigted source:ligand:receptor:target paths ###
+######################################################################
 #'
-#' Generates files of cluster:ligand:receptor:cluster edge weights
+#' Generates files of weighted source:ligand:receptor:target paths
 #'
-#' For a Seurat object
+#' Uses files generated with the GenerateEdgeWeights function to generate
+#' weighted paths connecting source(clusters):ligands:receptors:target(clusters).
+#' Paths are weighted by summing the three edges - source:ligand, ligand:receptor and
+#' receptor:target. Paths passing a minimum weight threshold are retained. For
+#' following permuation testing, a 'background' set of paths without thresholding
+#' are also written out.
 #'
-#' @param seurat.object a list of genes
-#' @param out.label a Seurat object with cluster identities
-#' @param species expression threshold for considering a gene expressed in a cell
-#' @param populations.use Threshold of percentage of cells expressing the gene in a cluster
-#' for it to be considered expressed
+#'
+#' @param file.label a list of genes
+#' @param min.weight minimum weight for retaining a path
 #'
 #' @return NULL - results written to file
 #'
-GenerateNetworkEdges <- function(file.label = out.lab,
+#' @export
+#'
+GenerateNetworkPaths <- function(file.label = out.lab,
                                  min.weight = 1.5) {
 
   edge.score.file = paste0(file.label, "_all_ligand_receptor_network_edges.csv")
@@ -204,5 +211,137 @@ GenerateNetworkEdges <- function(file.label = out.lab,
 
 }
 
+####################################################
+### Perform permutation testing on network edges ###
+####################################################
+#'
+#' Perform permutation testing on network edges
+#'
+#' Uses permutation testing to identify cell-cell connections that have
+#' path weights greater than would be expected by change.
+#'
+#'
+#' @param file.label a list of genes
+#' @param num.permutations number of permutations to perform
+#' @param num.cores number of cores to use in parallelisation
+#'
+#' @return NULL - results written to file
+#'
+#' @export
+#'
+EvaluateConnections <- function(file.label,
+                                num.permutations = 100000,
+                                num.cores = 1) {
+
+  ## Read in the individual weights for the edges in the network
+  weights.file = paste0(out.lab, "_all_ligand_receptor_network_edges.csv")
+  weights.table = read.csv(weights.file)
+
+  ligand.receptor.table = weights.table[weights.table$relationship == "ligand.receptor", ]
+  rownames(ligand.receptor.table) = paste0(ligand.receptor.table$source, "_", ligand.receptor.table$target)
+
+  receptor.cluster.table = weights.table[weights.table$relationship == "receptor.cluster", ]
+  rownames(receptor.cluster.table) = paste0(receptor.cluster.table$source, "_", receptor.cluster.table$target)
+
+  cluster.ligand.table = weights.table[weights.table$relationship == "cluster.ligand", ]
+  rownames(cluster.ligand.table) = paste0(cluster.ligand.table$source, "_", cluster.ligand.table$target)
+
+  ## Read in the background network file
+  completeFile = paste0(out.lab, "_background_paths.csv")
+  background.table = read.csv(completeFile, row.names = 1)
+  dim(background.table)
+
+  ## Read in the filtered network file
+  thisFile = paste0(out.lab, "_network_paths_weight1.5.csv")
+  complete.path.table = read.csv(thisFile, row.names = 1)
+
+  # Set up multiple workers
+  system.name <- Sys.info()['sysname']
+  new_cl <- FALSE
+  if (system.name == "Windows") {
+    new_cl <- TRUE
+    cluster <- parallel::makePSOCKcluster(rep("localhost", ncores))
+    doParallel::registerDoParallel(cluster)
+  } else {
+    doParallel::registerDoParallel(cores=ncores)
+  }
+
+  SeuratObjectFilter <- function(x) class(get(x)) == "Seurat"
+  seurat.objs <- ls()[unlist(lapply(ls(), SeuratObjectFilter))]
+
+  ## Permutation testing for determing signifcant cell-cell connections
+  ## Iterate through each combination of populations and do random selections
+  ## of fold changes for ligands and receptors. Calculate empirical P-value.
+  pvalue.table <- foreach::foreach(s.pop = populations.test,
+                                   .combine = 'rbind',
+                                   .export = c("complete.path.table", "background.table"),
+                                   .noexport = seurat.objs) %dopar%
+    {
+      this.source = paste0("S:", s.pop)
+      table.subset <- c()
+      for (t.pop in populations.test) {
+        this.target = paste0("T:", t.pop)
+
+        ## Add weights together
+        s.indicies = which(complete.path.table$Source == this.source)
+        t.indicies = which(complete.path.table$Target == this.target)
+        sub.table = complete.path.table[intersect(s.indicies, t.indicies), ]
+
+        num.paths = nrow(sub.table)
+        path.sum = sum(sub.table$Weight)
+
+        ## Get number of total paths from background table
+        s.indicies = which(background.table$Source == this.source)
+        t.indicies = which(background.table$Target == this.target)
+        sub.table = background.table[intersect(s.indicies, t.indicies), ]
+
+        num_total = nrow(sub.table)
+
+        ## Get weights from the background table
+        s.indicies.background = which(background.table$Source == this.source)
+        t.indicies.background = which(background.table$Target == this.target)
+        combined.indicies = intersect(s.indicies.background, t.indicies.background)
+        sub.background.table = background.table[combined.indicies, ]
+        ligand.receptor.set = paste0(sub.background.table$Ligand, "_", sub.background.table$Receptor)
+
+        ## Now get the real weights of ligand-receptor connections
+        ligand.receptor.sub.table = ligand.receptor.table[ligand.receptor.set, ]
+        ppi.weights = ligand.receptor.sub.table$weight
+
+        random.paths = rep(NA, num_total)
+        random.weight.sums = rep(NA, num_total)
+        for (i in 1:10000) {
+          random.weights = randomise_FC_weights(ppi.weights, cluster.ligand.table, receptor.cluster.table)
+          random.weights = random.weights[random.weights >= 1.5]
+
+          this.random.weight.sum = sum(random.weights)
+          this.random.path.count = length(random.weights)
+
+          random.paths[i] = this.random.path.count
+          random.weight.sums[i] = this.random.weight.sum
+
+        }
+        p.paths = sum(random.paths >= num.paths)/length(random.paths)
+        p.sum = sum(random.weight.sums >= path.sum)/length(random.weight.sums)
+
+        thisLine = data.frame(Source_population = s.pop, Target_population = t.pop, Num_paths = num.paths,
+                              Num_paths_pvalue = p.paths, Sum_path = path.sum, Sum_path_pvalue = p.sum)
+
+        table.subset <- rbind(table.subset, thisLine)
+
+      }
+      return(table.subset)
+  }
+
+
+  ## Do P-value adjustment for multiple testing
+  pval.adj = p.adjust(pvalue.table$Sum_path_pvalue, method = "BH")
+  pvalue.table$Sum_path_padj = pval.adj
+
+  ## Write test results to file
+  out.file = paste0("Permutation_tests_", out.lab, "_network.csv")
+  write.csv(pvalue.table, file = out.file, row.names = FALSE)
+
+}
 
 
