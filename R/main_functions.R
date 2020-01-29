@@ -8,7 +8,7 @@
 #' For a Seurat object
 #'
 #' @param seurat.object a list of genes
-#' @param out.label a Seurat object with cluster identities
+#' @param file.label a Seurat object with cluster identities
 #' @param species expression threshold for considering a gene expressed in a cell
 #' @param populations.use Threshold of percentage of cells expressing the gene in a cluster
 #' for it to be considered expressed
@@ -18,7 +18,7 @@
 #' @export
 #'
 GenerateEdgeWeights <- function(seurat.object,
-                                out.label,
+                                file.label,
                                 species,
                                 populations.use = NULL) {
 
@@ -135,12 +135,12 @@ GenerateEdgeWeights <- function(seurat.object,
   all.edges = rbind(as.matrix(ligand.receptor.edges.overlap), trimws(as.matrix(receptor.cluster.edges)), trimws(as.matrix(cluster.ligand.edges)))
 
   ### Write the network edges to file
-  write.csv(all.edges, file = paste0(out.lab, "_all_ligand_receptor_network_edges.csv"),
+  write.csv(all.edges, file = paste0(file.label, "_all_ligand_receptor_network_edges.csv"),
             row.names = FALSE, quote = FALSE)
 
   ## Also write out just the weights based on expression values
   expression.edges = rbind(trimws(as.matrix(receptor.cluster.edges)), trimws(as.matrix(cluster.ligand.edges)))
-  write.csv(expression.edges, file = paste0(out.lab, "_ligand_receptor_weights.csv"),
+  write.csv(expression.edges, file = paste0(file.label, "_ligand_receptor_weights.csv"),
             row.names = FALSE, quote = FALSE)
 
 }
@@ -166,7 +166,7 @@ GenerateEdgeWeights <- function(seurat.object,
 #'
 #' @export
 #'
-GenerateNetworkPaths <- function(file.label = out.lab,
+GenerateNetworkPaths <- function(file.label,
                                  min.weight = 1.5) {
 
   edge.score.file = paste0(file.label, "_all_ligand_receptor_network_edges.csv")
@@ -221,7 +221,7 @@ GenerateNetworkPaths <- function(file.label = out.lab,
 #' path weights greater than would be expected by change.
 #'
 #'
-#' @param file.label a list of genes
+#' @param file.label label for input and output files
 #' @param num.permutations number of permutations to perform
 #' @param num.cores number of cores to use in parallelisation
 #'
@@ -234,7 +234,7 @@ EvaluateConnections <- function(file.label,
                                 num.cores = 1) {
 
   ## Read in the individual weights for the edges in the network
-  weights.file = paste0(out.lab, "_all_ligand_receptor_network_edges.csv")
+  weights.file = paste0(file.label, "_all_ligand_receptor_network_edges.csv")
   weights.table = read.csv(weights.file)
 
   ligand.receptor.table = weights.table[weights.table$relationship == "ligand.receptor", ]
@@ -247,12 +247,12 @@ EvaluateConnections <- function(file.label,
   rownames(cluster.ligand.table) = paste0(cluster.ligand.table$source, "_", cluster.ligand.table$target)
 
   ## Read in the background network file
-  completeFile = paste0(out.lab, "_background_paths.csv")
+  completeFile = paste0(file.label, "_background_paths.csv")
   background.table = read.csv(completeFile, row.names = 1)
   dim(background.table)
 
   ## Read in the filtered network file
-  thisFile = paste0(out.lab, "_network_paths_weight1.5.csv")
+  thisFile = paste0(file.label, "_network_paths_weight1.5.csv")
   complete.path.table = read.csv(thisFile, row.names = 1)
 
   # Set up multiple workers
@@ -339,7 +339,7 @@ EvaluateConnections <- function(file.label,
   pvalue.table$Sum_path_padj = pval.adj
 
   ## Write test results to file
-  out.file = paste0("Permutation_tests_", out.lab, "_network.csv")
+  out.file = paste0("Permutation_tests_", file.label, "_network.csv")
   write.csv(pvalue.table, file = out.file, row.names = FALSE)
 
 }
