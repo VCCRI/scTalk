@@ -4,13 +4,13 @@
 \alias{GenerateEdgeWeights}
 \title{Generates files of cluster:ligand:receptor:cluster edge weights}
 \usage{
-GenerateEdgeWeights(seurat.object, out.label, species,
+GenerateEdgeWeights(seurat.object, file.label, species,
   populations.use = NULL)
 }
 \arguments{
 \item{seurat.object}{a list of genes}
 
-\item{out.label}{a Seurat object with cluster identities}
+\item{file.label}{a Seurat object with cluster identities}
 
 \item{species}{expression threshold for considering a gene expressed in a cell}
 

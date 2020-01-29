@@ -5,12 +5,14 @@
 \title{Perform permutation testing on network edges}
 \usage{
 EvaluateConnections(file.label, num.permutations = 1e+05,
-  num.cores = 1)
+  return.results = FALSE, num.cores = 1)
 }
 \arguments{
-\item{file.label}{a list of genes}
+\item{file.label}{label for input and output files}
 
 \item{num.permutations}{number of permutations to perform}
+
+\item{return.results}{whether to return the results table (default: FALSE)}
 
 \item{num.cores}{number of cores to use in parallelisation}
 }
