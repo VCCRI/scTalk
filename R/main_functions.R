@@ -167,7 +167,8 @@ GenerateEdgeWeights <- function(seurat.object,
 #' @export
 #'
 GenerateNetworkPaths <- function(file.label,
-                                 min.weight = 1.5) {
+                                 min.weight = 1.5)
+  {
 
   edge.score.file = paste0(file.label, "_all_ligand_receptor_network_edges.csv")
   score.table = read.csv(edge.score.file)
@@ -223,6 +224,7 @@ GenerateNetworkPaths <- function(file.label,
 #'
 #' @param file.label label for input and output files
 #' @param num.permutations number of permutations to perform
+#' @param return.results whether to return the results table (default: FALSE)
 #' @param num.cores number of cores to use in parallelisation
 #'
 #' @return NULL - results written to file
@@ -231,6 +233,7 @@ GenerateNetworkPaths <- function(file.label,
 #'
 EvaluateConnections <- function(file.label,
                                 num.permutations = 100000,
+                                return.results = FALSE,
                                 num.cores = 1) {
 
   ## Read in the individual weights for the edges in the network
@@ -341,6 +344,8 @@ EvaluateConnections <- function(file.label,
   ## Write test results to file
   out.file = paste0("Permutation_tests_", file.label, "_network.csv")
   write.csv(pvalue.table, file = out.file, row.names = FALSE)
+
+  if (return.results) return(pvalue.table)
 
 }
 
