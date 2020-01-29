@@ -4,12 +4,17 @@
 \alias{GenerateNetworkPaths}
 \title{Generates files of weighted source:ligand:receptor:target paths}
 \usage{
-GenerateNetworkPaths(file.label, min.weight = 1.5)
+GenerateNetworkPaths(file.label, populations.use = NULL,
+  min.weight = 1.5, ncores = 1)
 }
 \arguments{
 \item{file.label}{a list of genes}
 
+\item{populations.use}{the cell populations to use (default is all)}
+
 \item{min.weight}{minimum weight for retaining a path}
+
+\item{ncores}{number of cores for parallelisation}
 }
 \value{
 NULL - results written to file
