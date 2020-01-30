@@ -168,18 +168,26 @@ GenerateEdgeWeights <- function(seurat.object,
 #'
 #' @export
 #'
+#' @importFrom foreach "%dopar%"
+#'
 GenerateNetworkPaths <- function(file.label,
                                  populations.use = NULL,
                                  min.weight = 1.5,
                                  ncores = 1)
   {
 
-  if (is.null(populations.use)) {
-    populations.use <- names(table(Idents(seurat.object)))
-  }
-
   edge.score.file <- paste0(file.label, "_all_ligand_receptor_network_edges.csv")
   score.table <- read.csv(edge.score.file)
+
+  if (is.null(populations.use)) {
+    cluster.source.table <- subset(score.table, relationship == "cluster.ligand")
+    source.clusters <- unique(sub(".:(.*)", "\\1", cluster.source.table$source))
+
+    cluster.target.table <- subset(score.table, relationship == "receptor.cluster")
+    target.clusters <- unique(sub(".:(.*)", "\\1", cluster.target.table$target))
+
+    populations.use <- union(source.clusters, target.clusters)
+  }
 
   all.weights <- score.table$weight
   all.edges <- score.table[, c("source", "target")]
@@ -264,16 +272,18 @@ GenerateNetworkPaths <- function(file.label,
 #' @param file.label label for input and output files
 #' @param num.permutations number of permutations to perform
 #' @param return.results whether to return the results table (default: FALSE)
-#' @param num.cores number of cores to use in parallelisation
+#' @param ncores number of cores to use in parallelisation
 #'
 #' @return NULL - results written to file
 #'
 #' @export
 #'
+#' @importFrom foreach "%dopar%"
+#'
 EvaluateConnections <- function(file.label,
                                 num.permutations = 100000,
                                 return.results = FALSE,
-                                num.cores = 1) {
+                                ncores = 1) {
 
   ## Read in the individual weights for the edges in the network
   weights.file = paste0(file.label, "_all_ligand_receptor_network_edges.csv")
@@ -363,11 +373,13 @@ EvaluateConnections <- function(file.label,
           random.weight.sums[i] = this.random.weight.sum
 
         }
-        p.paths = sum(random.paths >= num.paths)/length(random.paths)
         p.sum = sum(random.weight.sums >= path.sum)/length(random.weight.sums)
 
-        thisLine = data.frame(Source_population = s.pop, Target_population = t.pop, Num_paths = num.paths,
-                              Num_paths_pvalue = p.paths, Sum_path = path.sum, Sum_path_pvalue = p.sum)
+        thisLine = data.frame(Source_population = s.pop,
+                              Target_population = t.pop,
+                              Num_paths = num.paths,
+                              Sum_path = path.sum,
+                              Sum_path_pvalue = p.sum)
 
         table.subset <- rbind(table.subset, thisLine)
 
@@ -383,6 +395,7 @@ EvaluateConnections <- function(file.label,
   ## Do P-value adjustment for multiple testing
   pval.adj = p.adjust(pvalue.table$Sum_path_pvalue, method = "BH")
   pvalue.table$Sum_path_padj = pval.adj
+  pvalue.table <- pvalue.table[order(pvalue.table$Sum_path_padj, decreasing = FALSE), ]
 
   ## Write test results to file
   out.file = paste0("Permutation_tests_", file.label, "_network.csv")
