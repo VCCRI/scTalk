@@ -24,4 +24,5 @@ Generates a dot plot showing inbound vs outbound weights for all populations.
 }
 \examples{
 PlotTopLigands(path.table = example.table, this.population = '1')
+
 }

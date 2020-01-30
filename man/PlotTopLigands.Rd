@@ -24,4 +24,5 @@ Plot a bar graph of the top ligands
 }
 \examples{
 PlotTopLigands(path.table = example.table, this.population = '1')
+
 }

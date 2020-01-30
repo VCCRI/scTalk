@@ -13,5 +13,6 @@ Imports:
     ggplot2,
     dplyr,
     igraph,
-    STRINGdb
+    STRINGdb,
+    scales
 RoxygenNote: 6.1.1
