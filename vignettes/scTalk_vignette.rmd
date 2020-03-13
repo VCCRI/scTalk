@@ -1,0 +1,186 @@
+---
+title: "scTalk: Intercellular communication analysis toolkit for scRNA-seq data"
+author: 
+  - name: Ralph Patrick
+    affiliation: Developmental and Stem Cell Biology Division, Victor Chang Cardiac Research Institute
+ 
+abstract: "This vignette provides a working example on how to use scTalk to uncover and visualise intercellular communication networks in single cell RNA sequencing data."
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output: 
+    BiocStyle::html_document:
+    highlight: pygments
+    toc: true
+    #number_sections: true  ## if you want number sections at each table header
+    #theme: united 
+keywords: single cell RNASeq, scRNA-Seq, RNA-Sequencing, RNA-Seq, intercellular communication
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Sierra}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup,echo=FALSE}
+library(knitr)
+library(BiocStyle)
+
+#Color Format
+colFmt = function(x,color){
+  outputFormat = knitr::opts_knit$get("rmarkdown.pandoc.to")
+  if(outputFormat == 'latex')
+    paste("\\textcolor{",color,"}{",x,"}",sep="")
+  else if(outputFormat == 'html')
+    paste("<font color='",color,"'>",x,"</font>",sep="")
+  else
+    x
+}
+
+```
+
+
+
+# Introduction
+
+Single cell RNA sequencing is a powerful technology that is utilised to extract gene expression information from thousands of cells. 
+
+scTalk is an R package implementation of the cell-cell communication method described in [Farbehi et al.](https://elifesciences.org/articles/43882). 
+
+
+# scTalk Installation
+
+scTalk can be installed from github
+
+
+```
+install.packages("devtools")
+devtools::install_github("VCCRI/scTalk", build = TRUE, build_vignettes = TRUE, build_opts = c("--no-resave-data", "--no-manual"))
+
+```
+
+
+# Preparing input data sets
+
+For this vignette, we will be using cardiac scRNA-seq from [Farbehi et al.](https://elifesciences.org/articles/43882). This study profiled cardiac interstitial cells from the hearts of mice subject to a myocardial infarction (MI) injury or sham control surgery. For the purpose of this vignette we have provided a small subset of the data from the MI-day 7 time-point.    
+
+## Inputs
+
+### Seurat object (required)
+scTalk operates on a Seurat object with pre-defined cell identities/clusters. 
+
+### Colour codes (optional)
+
+
+### Vignette example files
+For this vignette we have produced a reduced file to follow along with the following example. The following R code define the location of the vignette example files. 
+
+```
+extdata_path <- system.file("extdata",package = "scTalk")
+tip.seurat.file <- paste0(extdata_path,"/TIP_MI-day7_small.RData")
+
+```
+
+
+# Pipeline
+
+edge weights >> network paths >> permutation testing >> visualisation 
+
+## Generate edge weights
+
+```
+library(Seurat)
+library(scTalk)
+
+## Load the example Seurat object
+load(tip.seurat.object)
+
+## Define clusters to use in the analysis
+populations.use <- names(table(Idents(tip.mid7)))
+
+## Define a label for output files
+file.lab <- "TIP"
+
+
+```
+
+Now we'll use the ``GenerateEdgeWeights`` function to calculate weighted connections between clusters:ligands, ligands:receptors and receptors:clusters. 
+```
+GenerateEdgeWeights(seurat.object = tip.mid7,
+                    file.label = file.lab,
+                    species = "mouse",
+                    populations.use = populations.use)
+```
+
+This function will produce a file containing all network edges: the source node, target node, the relationship (cluster:ligand, receptor:cluster, ligand:receptor) and the
+corresponding weight. We can look at the info in the file:
+
+```
+edge.table <- read.csv(paste0(file.lab, "_all_ligand_receptor_network_edges.csv"))
+this.table <- this.table[order(this.table$weight, decreasing = TRUE), ]
+head(this.table)
+```
+
+
+|     |Source | target | relationship    | Weight   |
+|-----|-------|--------|-----------------|----------|
+|4488 |S:MAC6 | S100a8 | cluster.ligand  | 8.945521 |
+|4506 |S:MAC6 | S100a8 | cluster.ligand  | 8.495630 |
+|2987 |S:MAC6 | Camp   | cluster.ligand  | 6.978928 |
+|3042 |S:NKC  | Ccl5   | cluster.ligand  | 5.466655 |
+|4622 |S:MAC6 | Slpi   | cluster.ligand  | 5.219718 |
+|1114 |Cd79a  | T:BC   | receptor.cluster| 4.482905 |
+
+
+
+## Generate network paths
+
+Next, we will use the ``GenerateNetworkPaths`` function to build the cell:cell paths, via the connections we created in the previous step. The following step will use permutation testing to ascertain significant cell:cell connections, which requires a background. ``GenerateNetworkPaths`` will create a file of cell:cell connections above a provided minimum weight threshold, 1.5 by default. It will also create a background file of all potential connections, with no thresholding. 
+
+```
+GenerateNetworkPaths(file.label = file.lab,
+                     min.weight = 1.5,
+                     ncores = 4)
+```
+
+As above let's open the file and have a look. 
+
+```
+paths.table <- read.csv(paste0(file.lab, "_network_paths_weight1.5.csv"), row.names=1, stringsAsFactors = FALSE)
+paths.table <- paths.table[order(paths.table$Weight, decreasing = TRUE), ]
+head(paths.table)
+
+```
+|      |Source |Ligand  |Receptor |Target   |Weight   |
+|------|-------|--------|---------|---------|---------|      
+|91315 |S:MAC6 |S100a8  |Tlr4     |T:MAC-TR |9.974285 |
+|10347 |S:MAC6 |S100a8  |Tlr4     |T:MAC8   |9.858965 |
+|97215 |S:MAC6 |S100a8  |Tlr4     |T:M2MΦ   |9.677949 |
+|9666  |S:MAC6 |S100a8  |Tlr4     |T:M1MΦ   |9.672766 |
+|81316 |S:MAC6 |S100a8  |Tlr4     |T:F-SH   |9.657012 |
+|86119 |S:MAC6 |S100a8  |Tlr4     |T:M1Mo   |9.647094 |
+
+## Visualising networks
+
+Several visualisation options
+
+Circle plot:
+
+```
+## Generate a circle plot
+cell.network.file = paste0("Permutation_tests_", file.lab, "_network.csv")
+CellCirclePlot(input.file = cell.network.file, adj_pval_thresh = 0.01, col.set = col.set)
+```
+
+
+For this example can see that MYO has a large number of outbound connections
+
+```{r circleplot, out.width='100%', fig.cap = 'Circle Plot output',echo=FALSE}
+knitr::include_graphics('TIP_small_circle_plot.png')
+```
+
+
+# Session Information-----------------------------------
+
+```{r sessionInfo}
+sessionInfo()
+```
+
+
