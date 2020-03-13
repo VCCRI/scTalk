@@ -8,6 +8,7 @@ Description: TODO
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
+BiocViews:
 Imports:
     Seurat,
     ggplot2,
@@ -15,6 +16,7 @@ Imports:
     igraph,
     ggraph,
     STRINGdb,
+    multtest,
     scales
 RoxygenNote: 7.0.2
 VignetteBuilder: knitr
