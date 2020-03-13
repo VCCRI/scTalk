@@ -1,4 +1,4 @@
-Package: SCTalk
+Package: scTalk
 Type: Package
 Title: Single-cell talk - an R package for analysis of cell-cell communication networks from single-cell data.
 Version: 0.1.0
@@ -13,6 +13,8 @@ Imports:
     ggplot2,
     dplyr,
     igraph,
+    ggraph,
     STRINGdb,
     scales
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.2
+VignetteBuilder: knitr
