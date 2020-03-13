@@ -42,7 +42,8 @@ GenerateEdgeWeights <- function(seurat.object,
 
   ## Read in the ligand-receptor pairs
   ## These were taken from Ramilowski et al. (2015) Nature Communications
-  ligand.receptor.pairs = read.csv("All.Pairs-Table 1.csv", header=TRUE, row.names=1, stringsAsFactors = FALSE)
+  ligand.receptor.pairs = read.csv(paste0(extdata.path, "/All.Pairs-Table 1.csv"),
+                                   header=TRUE, row.names=1, stringsAsFactors = FALSE)
 
   ## Keep pairs that are either literature supported or putative but filter out those annotated as being incorrect
   ligand.receptor.pairs = ligand.receptor.pairs[ligand.receptor.pairs[ ,"Pair.Evidence"] %in% c("literature supported", "putative"), ]
