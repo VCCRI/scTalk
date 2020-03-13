@@ -111,8 +111,8 @@ corresponding weight. We can look at the info in the file:
 
 ```
 edge.table <- read.csv(paste0(file.lab, "_all_ligand_receptor_network_edges.csv"))
-this.table <- this.table[order(this.table$weight, decreasing = TRUE), ]
-head(this.table)
+edge.table <- edge.table[order(edge.table$weight, decreasing = TRUE), ]
+head(edge.table)
 ```
 
 
