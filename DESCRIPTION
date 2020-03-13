@@ -20,6 +20,7 @@ Imports:
     doParallel,
     STRINGdb,
     multtest,
+    BiocStyle,
     scales
 RoxygenNote: 7.0.2
 VignetteBuilder: knitr
