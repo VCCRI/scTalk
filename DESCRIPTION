@@ -15,6 +15,9 @@ Imports:
     dplyr,
     igraph,
     ggraph,
+    foreach,
+    parallel,
+    doParallel,
     STRINGdb,
     multtest,
     scales
