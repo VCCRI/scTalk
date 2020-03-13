@@ -61,15 +61,13 @@ devtools::install_github("VCCRI/scTalk", build = TRUE, build_vignettes = TRUE, b
 
 For this vignette, we will be using cardiac scRNA-seq from [Farbehi et al.](https://elifesciences.org/articles/43882). This study profiled cardiac interstitial cells from the hearts of mice subject to a myocardial infarction (MI) injury or sham control surgery. For the purpose of this vignette we have provided a small subset of the data from the MI-day 7 time-point.    
 
-## Inputs
+## Input
 
-### Seurat object (required)
+### Seurat object 
 scTalk operates on a Seurat object with pre-defined cell identities/clusters. 
 
-### Colour codes (optional)
 
-
-### Vignette example files
+### Vignette example file
 For this vignette we have produced a reduced file to follow along with the following example. The following R code define the location of the vignette example files. 
 
 ```
@@ -77,7 +75,6 @@ extdata_path <- system.file("extdata",package = "scTalk")
 tip.seurat.file <- paste0(extdata_path,"/TIP_MI-day7_small.RData")
 
 ```
-
 
 # Pipeline
 
@@ -178,16 +175,32 @@ head(results.table)
 |50   |F-SL     |EC1    |107  |276.4395       |0      |0  |
 |57   |F-SL     |EC3    |94   |218.0655       |0      |0  |
 
+This is the table that is used for visualising significant cell-cell connections. This can be done using the ``CellCirclePlot`` function described below. Alternatively, the table can be read into Cytoscape, which has powerful network visualisation capabilities. 
+
 ## Visualising networks
 
 scTalk has three main visualisation options available to it. 
 
 ### Circle plot
 
+In order to visualise the significant cell-cell connections we will use a circle plot. ``CellCirclePlot`` will use a default colour gradient, but you can select your own colour scheme as well. To do this create a named vector of colour codes:
+
+```
+col.set <- c("#c10023", "#008e17", "#fb8500", "#f60000", "#fde800", "#bc9000","#4ffc00", "#00bcac", "#0099cc", "#D35400", "#00eefd", "#5f777f", "#cf6bd6", "#99cc00", "#aa00ff", "#ff00ff", "#0053c8","#f2a287","#ffb3ff", "#800000", "#77a7b7", "#00896e", "#00cc99", "#FE0092")
+
+p.labels <- c("M1M\u03A6", "EC1", "F-SL", "F-Act", "F-SH", "BC", "M2M\u03A6", "M1Mo", "MYO","EC3", "DC", "EC2", "TC1-Cd8", "TC2-Cd4", "MAC-TR", "Mural", "Cyc", "MAC6", "MAC-IFNIC", "MAC7", "MAC8", "F-WntX", "NKC", "Glial")
+
+names(col.set) <- p.labels
+```
+
+``CellCirclePlot`` will generate a figure connecting cells based on an adjusted P-value threhsold. We use a threshold of 0.01 below to focus on visualising the strongest connections.
+
 ```
 ## Generate a circle plot
 cell.network.file = paste0("Permutation_tests_", file.lab, "_network.csv")
-CellCirclePlot(input.file = cell.network.file, adj_pval_thresh = 0.01, col.set = col.set)
+CellCirclePlot(input.file = cell.network.file, 
+               adj_pval_thresh = 0.01, 
+               col.set = col.set)
 ```
 
 For this example can see that MYO has a large number of outbound connections
@@ -198,7 +211,49 @@ knitr::include_graphics('TIP_small_circle_plot.png')
 
 ### Inbound/outbound weights plot
 
+```
+## Generate an inbound vs outbound plot
+InboundOutboundPlot(input.file = cell.network.file, 
+                    col.set = col.set,
+                    p.adj.thresh = 0.05)
+```
+
+```{r inboundoutbound, out.width='100%', fig.cap = 'Inbound vs outbound plot',echo=FALSE}
+knitr::include_graphics('TIP_small_inbound_outbound.png')
+```
+
 ### Tree plot
+
+The plot can easily get very 'busy' if there are too many nodes. There are a few ways to handle this. One is to reduce the number of target nodes. For this example, we will simply connect MYO (myofibroblasts) to EC (endothelial cell) populations. Another way is to only plot the top ligands. Here we will use the Seurat FindMarkers program to select upregulated genes, which will be input to ``NetworkTreePlot``.
+
+```
+## First, select ligands upregulated in source population
+source.marker.table <- Seurat::FindMarkers(tip.mid7, ident.1 = "MYO", 
+                                           logfc.threshold = 1.5, 
+                                           only.pos = TRUE)
+source.marker.genes <- rownames(source.marker.table)
+```
+
+Generate a tree plot linking MYO to the EC populations:
+
+```
+path.file <- paste0(file.lab, "_network_paths_weight1.5.csv")
+edge.score.file <- paste0(file.lab, "_all_ligand_receptor_network_edges.csv")
+source.population <- "MYO"
+target.populations <- c("EC1", "EC2", "EC3")
+population.cols <- c("#0099cc", "#008e17", "#5f777f", "#D35400")
+
+NetworkTreePlot(path.file = path.file, 
+                edge.score.file = edge.score.file,
+                source.population = source.population,
+                target.populations = target.populations,
+                source.marker.genes = source.marker.genes,
+                population.cols = population.cols)
+```
+
+```{r treeplot, out.width='100%', fig.cap = 'Tree plot',echo=FALSE}
+knitr::include_graphics('tree_plot.png')
+```
 
 
 # Session Information-----------------------------------
