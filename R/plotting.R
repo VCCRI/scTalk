@@ -40,7 +40,11 @@ InboundOutboundPlot <- function(input.file,
     p.labels <- p.labels[order(p.labels)]
   }
 
-  col.set = scales::hue_pal()(length(p.labels))
+  if (is.null(col.set)) {
+    col.set = scales::hue_pal()(length(p.labels))
+  }
+
+  col.set <- col.set[p.labels]
 
   edge.sources = factor(sig.paths$Source_population, levels = p.labels)
   edge.targets = factor(sig.paths$Target_population, levels = p.labels)
@@ -66,7 +70,8 @@ InboundOutboundPlot <- function(input.file,
     xlab("Total incoming weights") +
     geom_text(data=subset(ggData, (WeightsOut > lab.weight.thresh | WeightsIn > lab.weight.thresh)),
               aes(x=WeightsIn, y = WeightsOut, label=Population), hjust=0.4, vjust=-0.6, colour = "black") +
-    theme(legend.position = c(0.7, 0.75)) + guides(color = guide_legend(override.aes = list(size=4), ncol = 3))
+    guides(color = guide_legend(override.aes = list(size=4))) +
+    theme(legend.position = "right")
 
   if (return.plot) return(pl)
 }
@@ -349,7 +354,7 @@ CellCirclePlot <- function(input.file,
 #' @return a ggplot2 object.
 #' @examples
 #' NetworkTreePlot(path.file = example.file)
-#' 
+#'
 #'
 #' @export
 #'
@@ -375,12 +380,12 @@ NetworkTreePlot <- function(path.file,
   } else if (!is.null(target.marker.genes)) {
     path.table <- path.table[path.table$Receptor %in% target.marker.genes, ]
   }
-  
+
   ## if a set of ligands has been provided, subset the path table accordingly
   if (!is.null(ligand.set)) {
     path.table <- path.table[path.table$Ligand %in% ligand.set, ]
   } else if (!is.null(source.marker.genes)) {
-    path.table <- path.table[path.table$Ligand %in% marker.genes, ]
+    path.table <- path.table[path.table$Ligand %in% source.marker.genes, ]
   }
 
   population.labels <- union(source.population, target.populations)
@@ -521,12 +526,12 @@ NetworkTreePlot <- function(path.file,
   # Use ggraph to plot in a tree layout
   graph <- tidygraph::as_tbl_graph(lr.plot)
   net.pl <- ggraph::ggraph(graph, 'igraph', algorithm = "tree") +
-    ggraph::geom_node_point() + 
+    ggraph::geom_node_point() +
     ggplot2::theme_void() +
     ggraph::geom_edge_link(arrow = arrow(20, unit(.25, "cm"), type = "closed"), end_cap = ggraph::circle(4.8, "mm"), width = 0.75) +
-    ggraph::geom_node_point(aes(colour = Class, size = 5)) + 
+    ggraph::geom_node_point(aes(colour = Class, size = 5)) +
     ggplot2::scale_size(range = c(4, 14)) +
-    ggraph::geom_node_text(aes(label = Label), size = 3) + 
+    ggraph::geom_node_text(aes(label = Label), size = 3) +
     ggplot2::theme(legend.position = "bottom") + ggplot2::guides(size = FALSE)
   net.pl <- rescale_node_coordinates(net.pl, scale.by = "Ligand")
 
