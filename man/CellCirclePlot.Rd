@@ -4,8 +4,14 @@
 \alias{CellCirclePlot}
 \title{Generate a circle plot of significant cell-cell connections}
 \usage{
-CellCirclePlot(input.file, adj_pval_thresh = 0.05, col.set = NULL,
-  arrow.size = 0.6, arrow.width = 2, edge.multi = 0.02)
+CellCirclePlot(
+  input.file,
+  adj_pval_thresh = 0.05,
+  col.set = NULL,
+  arrow.size = 0.6,
+  arrow.width = 2,
+  edge.multi = 0.02
+)
 }
 \arguments{
 \item{input.file}{input file}

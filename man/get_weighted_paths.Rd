@@ -4,8 +4,13 @@
 \alias{get_weighted_paths}
 \title{Determine weights paths between query source and target populations}
 \usage{
-get_weighted_paths(edge.weight.table, source.population, target.population,
-  min.weight = 1.5, print.num.connections = FALSE)
+get_weighted_paths(
+  edge.weight.table,
+  source.population,
+  target.population,
+  min.weight = 1.5,
+  print.num.connections = FALSE
+)
 }
 \arguments{
 \item{edge.weight.table}{a table of edges and weights for building the source:ligand:receptor:target graph}
@@ -28,5 +33,5 @@ out summed paths between the query source and target populations. Retain paths a
 minimum weight.
 }
 \examples{
-getWeightedPaths(score.table, source.population, target.population)
+getWeightedPaths(edge.weight.table, source.population, target.population)
 }

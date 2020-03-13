@@ -4,13 +4,19 @@
 \alias{PlotTopLigands}
 \title{Plot a bar graph of the top ligands}
 \usage{
-PlotTopLigands(path.table, this.population, col.use = NULL,
-  min.weight = 2, max.plot.num = 15)
+PlotTopLigands(
+  input.file,
+  cell.identity,
+  col.use = "#757575",
+  min.weight = 2,
+  max.plot.num = 15,
+  title.use = NULL
+)
 }
 \arguments{
-\item{path.table}{a table of source:ligand:receptor:target paths.}
+\item{input.file}{a table of source:ligand:receptor:target paths.}
 
-\item{this.population}{a cluster ID contained in the path table.}
+\item{cell.identity}{the name of a cell population/cluster to use}
 
 \item{col.use}{optional paramater to set colour of the bar graph.}
 
@@ -23,6 +29,6 @@ a ggplot2 object.
 Plot a bar graph of the top ligands
 }
 \examples{
-PlotTopLigands(path.table = example.table, this.population = '1')
+PlotTopLigands(path.table = example.table, cell.identity = '1')
 
 }

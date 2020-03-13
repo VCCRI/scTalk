@@ -4,11 +4,18 @@
 \alias{EvaluateConnections}
 \title{Perform permutation testing on network edges}
 \usage{
-EvaluateConnections(file.label, num.permutations = 1e+05,
-  return.results = FALSE, ncores = 1)
+EvaluateConnections(
+  file.label,
+  populations.test = NULL,
+  num.permutations = 1e+05,
+  return.results = FALSE,
+  ncores = 1
+)
 }
 \arguments{
 \item{file.label}{label for input and output files}
+
+\item{populations.test}{set of cell populations to test for (default: all in file)}
 
 \item{num.permutations}{number of permutations to perform}
 

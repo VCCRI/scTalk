@@ -7,23 +7,43 @@
 #'
 #' Generates a dot plot showing inbound vs outbound weights for all populations.
 #'
-#' @param path.table a table of source:ligand:receptor:target paths.
-#' @param this.population a cluster ID contained in the path table.
+#' @param input.file a table of source:ligand:receptor:target paths.
 #' @param col.set optional paramater to set colours of the populations.
+#' @param p.labels cell-type labels (defaults to labels in input.file)
+#' @param p.adj.thresh minimum adjusted P-value for including a cell-cell connection
 #' @param lab.weight.thresh minimum weight for labelling populations in the plot.
+#' @param return.plot whether to return the ggplot2 object (default: TRUE)
 #' @return a ggplot2 object.
 #' @examples
-#' PlotTopLigands(path.table = example.table, this.population = '1')
+#' InboundOutboundPlot(path.table = example.table)
+#'
+#' @import ggplot2
 #'
 #' @export
 #'
-InboundOutboundPlot <- function(sig.paths, this.population,
-                                col.set = NULL, p.labels = NULL, lab.weight.thresh = 1000) {
-  col.set = hue_pal()(length(table(tip.aggr@ident)))
-  p.labels = names(table(tip.aggr@ident))
+InboundOutboundPlot <- function(input.file,
+                                col.set = NULL,
+                                p.labels = NULL,
+                                p.adj.thresh = 0.05,
+                                lab.weight.thresh = 1000,
+                                return.plot = TRUE) {
 
-  edge.sources = factor(all.edges$Source, levels = p.labels)
-  edge.targets = factor(all.edges$Target, levels = p.labels)
+  path.sig.file = input.file
+
+  sig.paths = read.csv(path.sig.file, sep = ",", stringsAsFactors = FALSE)
+
+  ## Subset according to adjusted P-value
+  sig.paths <- subset(sig.paths, Sum_path_padj < p.adj.thresh)
+
+  if (is.null(p.labels)) {
+    p.labels <- union(sig.paths$Source_population, sig.paths$Target_population)
+    p.labels <- p.labels[order(p.labels)]
+  }
+
+  col.set = scales::hue_pal()(length(p.labels))
+
+  edge.sources = factor(sig.paths$Source_population, levels = p.labels)
+  edge.targets = factor(sig.paths$Target_population, levels = p.labels)
 
   source.counts = table(edge.sources)
   target.counts = table(edge.targets)
@@ -47,7 +67,8 @@ InboundOutboundPlot <- function(sig.paths, this.population,
     geom_text(data=subset(ggData, (WeightsOut > lab.weight.thresh | WeightsIn > lab.weight.thresh)),
               aes(x=WeightsIn, y = WeightsOut, label=Population), hjust=0.4, vjust=-0.6, colour = "black") +
     theme(legend.position = c(0.7, 0.75)) + guides(color = guide_legend(override.aes = list(size=4), ncol = 3))
-  return(pl)
+
+  if (return.plot) return(pl)
 }
 
 #########################################################################################
@@ -56,26 +77,32 @@ InboundOutboundPlot <- function(sig.paths, this.population,
 
 #' Plot a bar graph of the top ligands
 #'
-#' @param path.table a table of source:ligand:receptor:target paths.
-#' @param this.population a cluster ID contained in the path table.
+#' @param input.file a table of source:ligand:receptor:target paths.
+#' @param cell.identity the name of a cell population/cluster to use
 #' @param col.use optional paramater to set colour of the bar graph.
 #' @param min.weight minimum weight for including paths in the top ligand calculations.
+#' @max.plot.num the maximum number of ligands to plot
 #' @return a ggplot2 object.
 #' @examples
-#' PlotTopLigands(path.table = example.table, this.population = '1')
+#' PlotTopLigands(path.table = example.table, cell.identity = '1')
+#'
+#' @import ggplot2
 #'
 #' @export
 #'
-PlotTopLigands <- function(path.table, this.population, col.use = NULL, min.weight = 2,
-                           max.plot.num = 15) {
-  p.labels = unique(as.character(tip.aggr@ident))
-  col.set = scales::hue_pal()(length(p.labels))
+PlotTopLigands <- function(input.file,
+                           cell.identity,
+                           col.use = "#757575",
+                           min.weight = 2,
+                           max.plot.num = 15,
+                           title.use = NULL) {
 
-  path.file = paste0(out.lab, "_network_paths_weight1.5.csv")
-  path.table = read.csv(path.file, sep = ",", row.names = 1)
+  path.sig.file = input.file
 
-  source.population = paste0("S:", this.population)
-  this.col = col.set[which(p.labels == this.population)]
+  path.table = read.csv(input.file, sep = ",", row.names = 1, stringsAsFactors = FALSE)
+
+  source.population = paste0("S:", cell.identity)
+  this.col = col.set[which(p.labels == cell.identity)]
   paths.subset = subset(path.table, Source == source.population)
 
   # SET MIN WEIGHT
@@ -98,9 +125,15 @@ PlotTopLigands <- function(path.table, this.population, col.use = NULL, min.weig
     ligand.weights.table = ligand.weights.table[1:max.plot.num, ]
   }
 
-  pl <- ggplot(ligand.weights.table, aes(x=reorder(Ligand, -Weight), y=Weight)) + geom_bar(stat="identity") +
-    theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) + xlab("Ligand") + ylab("Summed weight") +
-    ggtitle(paste0("Summed weights for top outbound cluster ", this.population, " ligands"))
+  pl <- ggplot(ligand.weights.table, aes(x=reorder(Ligand, -Weight), y=Weight)) +
+    geom_bar(stat="identity", fill = col.use) + theme_classic(base_size = 1) +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+    xlab("Ligand") + ylab("Summed weight")
+  if (is.null(title.use)) {
+    pl <- pl + ggtitle(paste0("Summed weights for top outbound ligands"))
+  } else{
+    pl <- pl + ggtitle(title.use)
+  }
 
   return(pl)
 }
@@ -219,7 +252,7 @@ CellCirclePlot <- function(input.file,
 
   path.sig.file = input.file
 
-  sig.paths = read.csv(path.sig.file, sep = ",")
+  sig.paths = read.csv(path.sig.file, sep = ",", stringsAsFactors = FALSE)
   #sig.paths$Source_population = sub(".:(.*)", "\\1", sig.paths$Source_population)
   #sig.paths$Target_population = sub(".:(.*)", "\\1", sig.paths$Target_population)
 
@@ -251,7 +284,7 @@ CellCirclePlot <- function(input.file,
   #population.cluster.map = names(new.ident)
   #names(population.cluster.map) = as.character(new.ident)
 
-  populations.use <- unique(as.character(igraph::V(lr.plot)))
+  populations.use <- igraph::as_ids(igraph::V(lr.plot))
   col.set <- col.set[populations.use]
   cluster.colors <- data.frame(cluster=populations.use, color=col.set)
   rownames(cluster.colors) <- cluster.colors$cluster
@@ -294,6 +327,240 @@ CellCirclePlot <- function(input.file,
 
 }
 
+#####################################################################################
+### Generate a network plot linking source:ligand:receptor:targets in tree format ###
+#####################################################################################
+#'
+#' Generate a network plot linking source:ligand:receptor:targets in tree format
+#'
+#' Given a file generated by the EvaluateConnections function,
+#' subsets according to adjusted P-value and plots the significant
+#' cell-cell connections. Uses the igraph package for network plotting.
+#'
+#' @param path.file input file
+#' @param edge.score.file adjusted p-value threshold for defining significance
+#' @param source.population named vector of colour codes to fill node colours
+#' @param target.populations minimum weight for labelling populations in the plot.
+#' @param ligand.set set of ligands to plot
+#' @param receptor.set set of receptors to plot
+#' @param population.cols option colour set for cell populations. provide in order of ligand, receptors
+#' @param ligand.col colour for the row of ligands
+#' @param receptor.col colour for the row of receptors
+#' @return a ggplot2 object.
+#' @examples
+#' NetworkTreePlot(path.file = example.file)
+#' 
+#'
+#' @export
+#'
+#' @importFrom igraph layout_in_circle
+#'
+NetworkTreePlot <- function(path.file,
+                            edge.score.file,
+                            source.population,
+                            target.populations,
+                            source.marker.genes = NULL,
+                            target.marker.genes = NULL,
+                            ligand.set = NULL,
+                            receptor.set = NULL,
+                            population.cols = NULL,
+                            ligand.col = "#c7d8e8",
+                            receptor.col = "#d2bcff") {
+
+  path.table <- read.csv(path.file, row.names = 1, stringsAsFactors = FALSE)
+
+  ## if a set of receptors has been provided, subset the path table accordingly
+  if (!is.null(receptor.set)) {
+    path.table <- path.table[path.table$Receptor %in% receptor.set, ]
+  } else if (!is.null(target.marker.genes)) {
+    path.table <- path.table[path.table$Receptor %in% target.marker.genes, ]
+  }
+  
+  ## if a set of ligands has been provided, subset the path table accordingly
+  if (!is.null(ligand.set)) {
+    path.table <- path.table[path.table$Ligand %in% ligand.set, ]
+  } else if (!is.null(source.marker.genes)) {
+    path.table <- path.table[path.table$Ligand %in% marker.genes, ]
+  }
+
+  population.labels <- union(source.population, target.populations)
+
+  ## subset according to the source population
+  source.population <- paste0("S:", source.population)
+  path.table <- path.table[path.table$Source == source.population, ]
+
+  ## If target populations have been provided, subset the table
+  target.populations <- paste0("T:", target.populations)
+  this.path.table <- path.table[path.table$Target %in% target.populations, ]
 
 
+
+
+  #############################################################
+  ### Given a path table, plot a network in a 'tree' format ###
+  #############################################################
+
+  ## Define a paths table
+  path.sub.table <- this.path.table
+
+  ## Read in score file
+  score.table <- read.csv(edge.score.file)
+  score.labels <- apply(score.table[, c("source", "target")], 1, function(x) paste0(x[1], ".", x[2]))
+  rownames(score.table) <- score.labels
+
+  ## Pull out the receptor examples and scale values
+  receptor.foldchange.indicies <- which(score.table$relationship == "receptor.cluster")
+  receptor.foldchange.table <- score.table[receptor.foldchange.indicies, ]
+  receptor.foldchange.table$weight <- scales::rescale(receptor.foldchange.table$weight)
+
+  ## Now Pull out ligand examples and scale values
+  ligand.foldchange.indicies <- which(score.table$relationship == "cluster.ligand")
+  ligand.foldchange.table <- score.table[ligand.foldchange.indicies, ]
+  ligand.foldchange.table$weight <- scales::rescale(ligand.foldchange.table$weight)
+
+  ligands <- path.sub.table$Ligand
+  receptors <- path.sub.table$Receptor
+
+  ## First layer of edges: origin cluster -> ligand
+  layer1.edges <- c()
+  for (i in c(1:nrow(path.sub.table))) {
+    this.edge <- c(as.character(path.sub.table[i, 1]), as.character(path.sub.table[i, 2]))
+    layer1.edges <- rbind(layer1.edges, this.edge)
+  }
+  layer1.edges <- unique(layer1.edges)
+  layer.labels <- as.character(apply(layer1.edges, 1, function(x) paste0(x[1], ".", x[2])))
+  rownames(layer1.edges) <- layer.labels
+
+  layer1.weights <- ligand.foldchange.table[layer.labels, ]$weight
+
+  ### Second layer of edges: ligand -> receptor
+  layer2.edges <- c()
+  for (i in c(1:nrow(path.sub.table))) {
+    this.edge <- c(as.character(path.sub.table[i, 2]), as.character(path.sub.table[i, 3]))
+    layer2.edges <- rbind(layer2.edges, this.edge)
+  }
+  layer2.edges <- unique(layer2.edges)
+  layer.labels <- as.character(apply(layer2.edges, 1, function(x) paste0(x[1], ".", x[2])))
+  rownames(layer2.edges) <- layer.labels
+
+  layer2.weights <- score.table[layer.labels, ]$weight
+
+  ### Third layer of edges: receptor -> target cluster
+  layer3.edges <- c()
+  for (i in c(1:nrow(path.sub.table))) {
+    this.edge <- c(as.character(path.sub.table[i, 3]), as.character(path.sub.table[i, 4]))
+    layer3.edges <- rbind(layer3.edges, this.edge)
+  }
+  layer3.edges <- unique(layer3.edges)
+  layer.labels <- as.character(apply(layer3.edges, 1, function(x) paste0(x[1], ".", x[2])))
+  rownames(layer3.edges) <- layer.labels
+
+  layer3.weights <- receptor.foldchange.table[layer.labels, ]$weight
+
+  ## Combined all edges together for graph input
+  all.edges <- c()
+  for (i in c(1:nrow(layer1.edges))){
+    all.edges <- append(all.edges, layer1.edges[i,])
+  }
+  for (i in c(1:nrow(layer2.edges))){
+    all.edges <- append(all.edges, layer2.edges[i,])
+  }
+  for (i in c(1:nrow(layer3.edges))){
+    all.edges <- append(all.edges, layer3.edges[i,])
+  }
+
+  ## Combine all weights
+  all.weights <- c(layer1.weights, layer2.weights, layer3.weights)
+
+  #net = network(all.edges, directed = TRUE)
+  lr.plot <- igraph::graph(all.edges)
+  graph <- tidygraph::as_tbl_graph(lr.plot)
+
+  named.p.labels <- population.labels
+  names(named.p.labels) <- population.labels
+
+  # Specific vertex class - either a cluster or a gene
+  vertex.class <- c()
+  tree.level <- c()
+  node.names <- c()
+  for (this.vertex in names(igraph::V(lr.plot))) {
+    if (startsWith(this.vertex, "S:")) {
+      this.cluster <- sub(".:(.*)", "\\1", this.vertex)
+      this.cluster <- named.p.labels[this.cluster]
+      vertex.class <- append(vertex.class, this.cluster)
+      node.names <- append(node.names, this.cluster)
+      tree.level <- append(tree.level, "Source")
+    } else if (startsWith(this.vertex, "T:")) {
+      this.cluster <- sub(".:(.*)", "\\1", this.vertex)
+      this.cluster <- named.p.labels[this.cluster]
+      vertex.class <- append(vertex.class, this.cluster)
+      node.names <- append(node.names, this.cluster)
+      tree.level <- append(tree.level, "Target")
+    } else{
+      if (this.vertex %in% ligands) {
+        vertex.class <- append(vertex.class, "Ligand")
+        node.names <- append(node.names, this.vertex)
+        tree.level <- append(tree.level, "Ligand")
+      } else if (this.vertex %in% receptors) {
+        vertex.class <- append(vertex.class, "Receptor")
+        node.names <- append(node.names, this.vertex)
+        tree.level <- append(tree.level, "Receptor")
+      } else {
+        warning(paste0(this.vertex, " not in ligand or receptor list"))
+      }
+    }
+  }
+  igraph::V(lr.plot)$Class <- vertex.class
+  igraph::V(lr.plot)$Label <- node.names
+  igraph::V(lr.plot)$Level <- tree.level
+
+  igraph::E(lr.plot)$Weight <- all.weights
+
+  v.cols = c("#e6e6e6")
+
+  # Use ggraph to plot in a tree layout
+  graph <- tidygraph::as_tbl_graph(lr.plot)
+  net.pl <- ggraph::ggraph(graph, 'igraph', algorithm = "tree") +
+    ggraph::geom_node_point() + 
+    ggplot2::theme_void() +
+    ggraph::geom_edge_link(arrow = arrow(20, unit(.25, "cm"), type = "closed"), end_cap = ggraph::circle(4.8, "mm"), width = 0.75) +
+    ggraph::geom_node_point(aes(colour = Class, size = 5)) + 
+    ggplot2::scale_size(range = c(4, 14)) +
+    ggraph::geom_node_text(aes(label = Label), size = 3) + 
+    ggplot2::theme(legend.position = "bottom") + ggplot2::guides(size = FALSE)
+  net.pl <- rescale_node_coordinates(net.pl, scale.by = "Ligand")
+
+  ## Now adjust the node colours
+  if (is.null(population.cols)) {
+    col.set <- scales::hue_pal()(length(population.labels))
+  } else{
+    col.set <- population.cols
+  }
+
+  col.table = data.frame(Population = population.labels, Col = col.set)
+  rownames(col.table) = population.labels
+
+  node.names = levels(net.pl$data$name)
+  labels.names = c()
+  node.cols = c()
+  for (thisName in levels(factor(net.pl$data$Class))) {
+    if (thisName %in% rownames(col.table)) {
+      node.cols = append(node.cols, as.character(col.table[thisName, 2]))
+      labels.names = append(labels.names, as.character(col.table[thisName, 1]))
+    } else {
+      if (thisName == "Ligand") {
+        node.cols = append(node.cols, ligand.col)
+        labels.names = append(labels.names, thisName)
+      } else {
+        node.cols = append(node.cols, receptor.col)
+        labels.names = append(labels.names, thisName)
+      }
+    }
+  }
+
+  net.pl <- net.pl + scale_colour_manual(values = node.cols) + theme(legend.position = "right") +
+    guides(colour = guide_legend(override.aes = list(size=4)))
+
+  return(net.pl)
+}
 

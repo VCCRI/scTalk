@@ -4,8 +4,11 @@
 \alias{rescale_node_coordinates}
 \title{Rescale nodes in a ggraph tree for even distribution}
 \usage{
-rescale_node_coordinates(graph, scale.by = "Ligand",
-  do.update = c("Source", "Ligand", "Receptor", "Target"))
+rescale_node_coordinates(
+  graph,
+  scale.by = "Ligand",
+  do.update = c("Source", "Ligand", "Receptor", "Target")
+)
 }
 \arguments{
 \item{graph}{a ggraph object containing a tree graph.}

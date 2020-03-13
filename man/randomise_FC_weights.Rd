@@ -4,8 +4,7 @@
 \alias{randomise_FC_weights}
 \title{Randomise source:ligand and receptor:target weights}
 \usage{
-randomise_FC_weights(ppi.weights, cluster.ligand.table,
-  receptor.cluster.table)
+randomise_FC_weights(ppi.weights, cluster.ligand.table, receptor.cluster.table)
 }
 \arguments{
 \item{ppi.weights}{a vector of ligands}

@@ -95,8 +95,8 @@ get_gene_pair_expression_values <- function(ligand.receptor.pairs,
     ligand = as.character(mapping.table[as.character(ligand.receptor.pairs[n, 1]), 2])
     receptor = as.character(mapping.table[as.character(ligand.receptor.pairs[n, 2]), 2])
 
-    de.results$Label = rownames(de.results)
-    de.res.subset <- subset(de.results, Gene %in% c(ligand, receptor))
+    gene.de.results$Label = rownames(gene.de.results)
+    de.res.subset <- subset(gene.de.results, Gene %in% c(ligand, receptor))
     de.res.subset %>% dplyr::mutate(Class = ifelse(Gene==ligand, "Ligand", "Receptor")) ->
       de.res.subset
 
@@ -257,12 +257,12 @@ make_STRING_table <- function(ligands, receptors, species = "mouse", dir.path = 
 #' @param print.num.connections whether to print the number of paths passing the min weight threshold (False by default)
 #' @return a vector of source:target path weights
 #' @examples
-#' getWeightedPaths(score.table, source.population, target.population)
+#' getWeightedPaths(edge.weight.table, source.population, target.population)
 get_weighted_paths <- function(edge.weight.table, source.population, target.population,
                              min.weight = 1.5, print.num.connections = FALSE) {
   ## put edges in format for creating a graph
-  all.weights = score.table$weight
-  all.edges = score.table[, c("source", "target")]
+  all.weights = edge.weight.table$weight
+  all.edges = edge.weight.table[, c("source", "target")]
 
   edges.list = unlist(lapply(t(all.edges), function(x) c(x[1])))
 

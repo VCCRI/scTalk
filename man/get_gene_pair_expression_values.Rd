@@ -4,8 +4,12 @@
 \alias{get_gene_pair_expression_values}
 \title{Identify expression of ligands/receptors among clusters}
 \usage{
-get_gene_pair_expression_values(ligand.receptor.pairs, mapping.table,
-  cluster.names, gene.de.results)
+get_gene_pair_expression_values(
+  ligand.receptor.pairs,
+  mapping.table,
+  cluster.names,
+  gene.de.results
+)
 }
 \arguments{
 \item{ligand.receptor.pairs}{table of ligand-receptor pairs}

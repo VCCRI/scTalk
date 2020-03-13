@@ -4,8 +4,13 @@
 \alias{calculate_cluster_specific_expression}
 \title{Calculate expression metrics across clusters for a set of genes}
 \usage{
-calculate_cluster_specific_expression(geneList, seurat.object,
-  exp.threshold = 0, threshold = 0.5, cluster.set = NULL)
+calculate_cluster_specific_expression(
+  geneList,
+  seurat.object,
+  exp.threshold = 0,
+  threshold = 0.5,
+  cluster.set = NULL
+)
 }
 \arguments{
 \item{geneList}{a list of genes}

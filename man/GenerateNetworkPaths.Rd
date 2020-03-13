@@ -4,8 +4,12 @@
 \alias{GenerateNetworkPaths}
 \title{Generates files of weighted source:ligand:receptor:target paths}
 \usage{
-GenerateNetworkPaths(file.label, populations.use = NULL,
-  min.weight = 1.5, ncores = 1)
+GenerateNetworkPaths(
+  file.label,
+  populations.use = NULL,
+  min.weight = 1.5,
+  ncores = 1
+)
 }
 \arguments{
 \item{file.label}{a list of genes}

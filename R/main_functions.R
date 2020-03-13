@@ -5,13 +5,14 @@
 #'
 #' Generates files of cluster:ligand:receptor:cluster edge weights
 #'
-#' For a Seurat object
+#' For a Seurat object, calculates
 #'
 #' @param seurat.object a list of genes
 #' @param file.label a Seurat object with cluster identities
 #' @param species expression threshold for considering a gene expressed in a cell
-#' @param populations.use Threshold of percentage of cells expressing the gene in a cluster
-#' for it to be considered expressed
+#' @param populations.use threshold of percentage of cells expressing the gene in a cluster for it to be considered expressed
+#' @param string.dir directory for storing STRING data (defaults to working directory)
+#'
 #'
 #' @return NULL - results written to file
 #'
@@ -20,14 +21,15 @@
 GenerateEdgeWeights <- function(seurat.object,
                                 file.label,
                                 species,
-                                populations.use = NULL) {
+                                populations.use = NULL,
+                                string.dir = NULL) {
 
   if (is.null(populations.use)) {
     populations.use <- names(table(Idents(seurat.object)))
   }
 
   ## Read in mouse to human orthologue mappings
-  extdata.path <- system.file("extdata", package = "SCTalk")
+  extdata.path <- system.file("extdata", package = "scTalk")
   if (species == "human") {
     mapping.file <- paste0(extdata.path, "/human_human_ensembl_gene_names.txt")
   } else if (species == "mouse") {
@@ -99,7 +101,9 @@ GenerateEdgeWeights <- function(seurat.object,
   receptors = as.character(ligand.receptor.edges[, 2])
 
   ### Here use the STRING data-base to give mouse-specific scores to ligand-receptor relationships
-  lr_score_table = make_STRING_table(ligands, receptors)
+  lr_score_table = make_STRING_table(ligands = ligands,
+                                     receptors = receptors,
+                                     dir.path = string.dir)
   head(lr_score_table) ## print out some interactions
 
   overlapping.genes = intersect(pair.identifiers, rownames(lr_score_table))
@@ -177,7 +181,7 @@ GenerateNetworkPaths <- function(file.label,
   {
 
   edge.score.file <- paste0(file.label, "_all_ligand_receptor_network_edges.csv")
-  score.table <- read.csv(edge.score.file)
+  score.table <- read.csv(edge.score.file, stringsAsFactors = FALSE)
 
   if (is.null(populations.use)) {
     cluster.source.table <- subset(score.table, relationship == "cluster.ligand")
@@ -211,14 +215,13 @@ GenerateNetworkPaths <- function(file.label,
   ## Go through and calculate summed path weights from source to target populations
   ## Minimum weight of 1.5 to select for paths with some up-regulation (in ligand, receptor or both)
   complete.path.table <- foreach::foreach(s.pop = populations.test,
-                                   .combine = 'rbind',
-                                   .noexport = seurat.objs) %dopar%
+                                   .combine = 'rbind') %dopar%
   {
     target.path.table <- c()
     for (t.pop in populations.test) {
       source.population <- paste0("S:", s.pop)
       target.population <- paste0("T:", t.pop)
-      this.path.table <- get_weighted_paths(score.table,
+      this.path.table <- get_weighted_paths(edge.weight.table = score.table,
                                            source.population = source.population,
                                            target.population = target.population,
                                            min.weight = min.weight)
@@ -270,6 +273,7 @@ GenerateNetworkPaths <- function(file.label,
 #'
 #'
 #' @param file.label label for input and output files
+#' @param populations.test set of cell populations to test for (default: all in file)
 #' @param num.permutations number of permutations to perform
 #' @param return.results whether to return the results table (default: FALSE)
 #' @param ncores number of cores to use in parallelisation
@@ -281,13 +285,24 @@ GenerateNetworkPaths <- function(file.label,
 #' @importFrom foreach "%dopar%"
 #'
 EvaluateConnections <- function(file.label,
+                                populations.test = NULL,
                                 num.permutations = 100000,
                                 return.results = FALSE,
                                 ncores = 1) {
 
   ## Read in the individual weights for the edges in the network
   weights.file = paste0(file.label, "_all_ligand_receptor_network_edges.csv")
-  weights.table = read.csv(weights.file)
+  weights.table = read.csv(weights.file, stringsAsFactors = FALSE)
+
+  if (is.null(populations.test)) {
+    cluster.source.table <- subset(weights.table, relationship == "cluster.ligand")
+    source.clusters <- unique(sub(".:(.*)", "\\1", cluster.source.table$source))
+
+    cluster.target.table <- subset(weights.table, relationship == "receptor.cluster")
+    target.clusters <- unique(sub(".:(.*)", "\\1", cluster.target.table$target))
+
+    populations.test <- union(source.clusters, target.clusters)
+  }
 
   ligand.receptor.table = weights.table[weights.table$relationship == "ligand.receptor", ]
   rownames(ligand.receptor.table) = paste0(ligand.receptor.table$source, "_", ligand.receptor.table$target)

@@ -157,11 +157,31 @@ head(paths.table)
 |81316 |S:MAC6 |S100a8  |Tlr4     |T:F-SH   |9.657012 |
 |86119 |S:MAC6 |S100a8  |Tlr4     |T:M1Mo   |9.647094 |
 
+
+## Identify significant cell-cell connections
+
+The final analysis step is to perform a permutation test on the number of cell-cell connections that pass the minimum weight threshold (e.g. 1.5) from the previous step. Permutation testing is used to select cluster:ligand and receptor:cluster edges at random from the background file and compare the randomised cell:cell connections to the real one. By default, 100,000 permutations are used, though this can be modified with the ``num.permutations`` paramater. 
+
+```
+results.table <- EvaluateConnections(file.label = file.lab, 
+                                     ncores = 4,
+                                     return.results = TRUE)
+```
+
+|   |Source_population |Target_population |Num_paths |Sum_path |Sum_path_pvalue |Sum_path_padj |
+|-----|---------|-------|-----|---------------|-------|---|
+|2    |M1MΦ     |EC1    |51   |147.7263       |0      |0  |
+|11   |M1MΦ     |EC2    |49   |132.8273       |0      |0  |
+|26   |EC1      |EC1    |59   |157.2924       |0      |0  |
+|35   |EC1      |EC2    |54   |134.6211       |0      |0  |
+|50   |F-SL     |EC1    |107  |276.4395       |0      |0  |
+|57   |F-SL     |EC3    |94   |218.0655       |0      |0  |
+
 ## Visualising networks
 
-Several visualisation options
+scTalk has three main visualisation options available to it. 
 
-Circle plot:
+### Circle plot
 
 ```
 ## Generate a circle plot
@@ -169,12 +189,15 @@ cell.network.file = paste0("Permutation_tests_", file.lab, "_network.csv")
 CellCirclePlot(input.file = cell.network.file, adj_pval_thresh = 0.01, col.set = col.set)
 ```
 
-
 For this example can see that MYO has a large number of outbound connections
 
 ```{r circleplot, out.width='100%', fig.cap = 'Circle Plot output',echo=FALSE}
 knitr::include_graphics('TIP_small_circle_plot.png')
 ```
+
+### Inbound/outbound weights plot
+
+### Tree plot
 
 
 # Session Information-----------------------------------

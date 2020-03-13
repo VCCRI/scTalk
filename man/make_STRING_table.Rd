@@ -4,8 +4,13 @@
 \alias{make_STRING_table}
 \title{Ligand:receptor association scores}
 \usage{
-make_STRING_table(ligands, receptors, species = "mouse",
-  dir.path = NULL, string.ver = "10")
+make_STRING_table(
+  ligands,
+  receptors,
+  species = "mouse",
+  dir.path = NULL,
+  string.ver = "10"
+)
 }
 \arguments{
 \item{ligands}{a vector of ligands}

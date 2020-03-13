@@ -4,8 +4,13 @@
 \alias{GenerateEdgeWeights}
 \title{Generates files of cluster:ligand:receptor:cluster edge weights}
 \usage{
-GenerateEdgeWeights(seurat.object, file.label, species,
-  populations.use = NULL)
+GenerateEdgeWeights(
+  seurat.object,
+  file.label,
+  species,
+  populations.use = NULL,
+  string.dir = NULL
+)
 }
 \arguments{
 \item{seurat.object}{a list of genes}
@@ -14,12 +19,13 @@ GenerateEdgeWeights(seurat.object, file.label, species,
 
 \item{species}{expression threshold for considering a gene expressed in a cell}
 
-\item{populations.use}{Threshold of percentage of cells expressing the gene in a cluster
-for it to be considered expressed}
+\item{populations.use}{threshold of percentage of cells expressing the gene in a cluster for it to be considered expressed}
+
+\item{string.dir}{directory for storing STRING data (defaults to working directory)}
 }
 \value{
 NULL - results written to file
 }
 \description{
-For a Seurat object
+For a Seurat object, calculates
 }

@@ -4,17 +4,27 @@
 \alias{InboundOutboundPlot}
 \title{Plot inbound vs outbound weights}
 \usage{
-InboundOutboundPlot(sig.paths, this.population, col.set = NULL,
-  p.labels = NULL, lab.weight.thresh = 1000)
+InboundOutboundPlot(
+  input.file,
+  col.set = NULL,
+  p.labels = NULL,
+  p.adj.thresh = 0.05,
+  lab.weight.thresh = 1000,
+  return.plot = TRUE
+)
 }
 \arguments{
-\item{this.population}{a cluster ID contained in the path table.}
+\item{input.file}{a table of source:ligand:receptor:target paths.}
 
 \item{col.set}{optional paramater to set colours of the populations.}
 
+\item{p.labels}{cell-type labels (defaults to labels in input.file)}
+
+\item{p.adj.thresh}{minimum adjusted P-value for including a cell-cell connection}
+
 \item{lab.weight.thresh}{minimum weight for labelling populations in the plot.}
 
-\item{path.table}{a table of source:ligand:receptor:target paths.}
+\item{return.plot}{whether to return the ggplot2 object (default: TRUE)}
 }
 \value{
 a ggplot2 object.
@@ -23,6 +33,6 @@ a ggplot2 object.
 Generates a dot plot showing inbound vs outbound weights for all populations.
 }
 \examples{
-PlotTopLigands(path.table = example.table, this.population = '1')
+InboundOutboundPlot(path.table = example.table)
 
 }
