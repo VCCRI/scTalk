@@ -166,6 +166,7 @@ The final analysis step is to perform a permutation test on the number of cell-c
 results.table <- EvaluateConnections(file.label = file.lab, 
                                      ncores = 4,
                                      return.results = TRUE)
+head(results.table)
 ```
 
 |   |Source_population |Target_population |Num_paths |Sum_path |Sum_path_pvalue |Sum_path_padj |
