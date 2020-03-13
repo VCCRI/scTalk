@@ -87,7 +87,7 @@ library(Seurat)
 library(scTalk)
 
 ## Load the example Seurat object
-load(tip.seurat.object)
+load(tip.seurat.file)
 
 ## Define clusters to use in the analysis
 populations.use <- names(table(Idents(tip.mid7)))
