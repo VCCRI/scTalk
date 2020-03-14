@@ -1,8 +1,9 @@
 # scTalk
-Intercellular communication analysis for scRNA-seq data
+
+scTalk is an R package for intercellular communication (ligand-receptor) analysis from scRNA-seq data and implements the method described in [Farbehi et al.](https://elifesciences.org/articles/43882).
 
 
-Install scTalk using the following commands:
+To install scTalk, open an R session and use the following commands:
 
 ```
 install.packages("devtools")
