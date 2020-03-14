@@ -46,7 +46,7 @@ scTalk is an R package implementation of the scRNA-seq cell-cell communication m
 knitr::include_graphics('cartoon.png')
 ```
 
-Once the edge weights have been calculated, an overall weight between any two cell populations is calculated by summing up the weights along all the paths connecting them. In order to determine what cell-cell connections are most signifcant, the source:ligand and receptor:target edges are randomly permutated, randomised cell-cell weights are recalculated and compared to the real weights to derive an empirical P-value. Finally, scTalk has several visualisation options available for plotting the cell-cell connections, the tendency for cell populations to exhibit more 'outbound' (ligand expressing) or 'inbound' (receptor expressing) gene expression patterns and specific source:ligand:receptor:target network diagrams. 
+Once the edge weights have been calculated, an overall weight between any two cell populations is calculated by summing up the weights along all the paths connecting them. In order to determine what cell-cell connections are most signifcant, the source:ligand and receptor:target edges are randomly permutated, randomised cell-cell weights are recalculated and compared to the real weights to derive an empirical P-value. Finally, scTalk has several visualisation options available for plotting the cell-cell connections, the tendency for cell populations to exhibit more 'outbound' (ligand expressing) or 'inbound' (receptor expressing) gene expression patterns, top ligands for a cell population and specific source:ligand:receptor:target network diagrams. 
 
 
 # scTalk Installation
@@ -183,7 +183,7 @@ This is the table that is used for visualising significant cell-cell connections
 
 ## Visualising networks
 
-scTalk has three main visualisation options available to it. 
+scTalk has four main visualisation options available to it. 
 
 ### Circle plot
 
