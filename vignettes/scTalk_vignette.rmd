@@ -40,9 +40,13 @@ colFmt = function(x,color){
 
 # Introduction
 
-Single cell RNA sequencing is a powerful technology that is utilised to extract gene expression information from thousands of cells. 
+scTalk is an R package implementation of the scRNA-seq cell-cell communication method described in [Farbehi et al.](https://elifesciences.org/articles/43882). Briefly, the approach is to build weighted graphs linking 'source' cell types (those expressing a ligand) to 'target' cell types (those expressing a corresponding receptor). A four-layer acyclic graph is built such that the top layer of nodes represents the source cell types, second layer the ligands expressed by these cells, third layer the receptors targetted by the ligands and fourth layer the cell types expressing the receptors. Weights for the source:ligand and receptor:target edges are derived from fold-change expression of the genes in the relevant populations compared to all other cells in the experiment. Weights for ligand:receptor edges are derived using protein:protein association scores from the STRING database. Ligand:receptor connections are derived from [Ramilowski et al.](https://www.ncbi.nlm.nih.gov/pubmed/26198319).
 
-scTalk is an R package implementation of the cell-cell communication method described in [Farbehi et al.](https://elifesciences.org/articles/43882). 
+```{r cartoon, out.width='75%', fig.cap = 'Method schematic',echo=FALSE}
+knitr::include_graphics('cartoon.png')
+```
+
+Once the edge weights have been calculated, an overall weight between any two cell populations is calculated by summing up the weights along all the paths connecting them. In order to determine what cell-cell connections are most signifcant, the source:ligand and receptor:target edges are randomly permutated, randomised cell-cell weights are recalculated and compared to the real weights to derive an empirical P-value. Finally, scTalk has several visualisation options available for plotting the cell-cell connections, the tendency for cell populations to exhibit more 'outbound' (ligand expressing) or 'inbound' (receptor expressing) gene expression patterns and specific source:ligand:receptor:target network diagrams. 
 
 
 # scTalk Installation
@@ -129,7 +133,7 @@ head(edge.table)
 
 ## Generate network paths
 
-Next, we will use the ``GenerateNetworkPaths`` function to build the cell:cell paths, via the connections we created in the previous step. The following step will use permutation testing to ascertain significant cell:cell connections, which requires a background. ``GenerateNetworkPaths`` will create a file of cell:cell connections above a provided minimum weight threshold, 1.5 by default. It will also create a background file of all potential connections, with no thresholding. 
+Next, we will use the ``GenerateNetworkPaths`` function to build the cell:cell paths, via the connections we created in the previous step. The following step will use permutation testing to ascertain significant cell:cell connections, which requires a background. ``GenerateNetworkPaths`` will create a file of cell:cell connections above a provided minimum weight threshold, 1.5 by default. It will also create a background file of all potential connections, with no thresholding. Number of cores can be specified to speed up the analysis.
 
 ```
 GenerateNetworkPaths(file.label = file.lab,
@@ -211,6 +215,8 @@ knitr::include_graphics('TIP_small_circle_plot.png')
 
 ### Inbound/outbound weights plot
 
+The concept behind this plot is that some cell populations may tend to exhibit more 'outbound', or ligand expressing activity, while other exhibit more 'inbound', or receptor expressing, activity. ``InboundOutboundPlot`` takes the cell-cell connections that are determined to be significant, and sums the weights each of the 'source' (outbound) and 'target' (inbound) populations and plots these values against each other. More outbound populations will tend to be higher up the Y-axis, with inbound populations higher along the Y-axis. 
+
 ```
 ## Generate an inbound vs outbound plot
 InboundOutboundPlot(input.file = cell.network.file, 
@@ -220,6 +226,18 @@ InboundOutboundPlot(input.file = cell.network.file,
 
 ```{r inboundoutbound, out.width='100%', fig.cap = 'Inbound vs outbound plot',echo=FALSE}
 knitr::include_graphics('TIP_small_inbound_outbound.png')
+```
+
+### Plot top ligands
+
+To plot the top ligands in a population use the ``PlotTopLigands`` function.
+
+```
+## Plot top ligands for a cell population
+path.file <- paste0(file.lab, "_network_paths_weight1.5.csv")
+cell.type <- "MYO"
+PlotTopLigands(input.file = path.file, 
+               cell.identity = cell.type)
 ```
 
 ### Tree plot
