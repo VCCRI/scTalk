@@ -247,7 +247,7 @@ knitr::include_graphics('TopLigands.png')
 
 ### Tree plot
 
-The plot can easily get very 'busy' if there are too many nodes. There are a few ways to handle this. One is to reduce the number of target nodes. For this example, we will simply connect MYO (myofibroblasts) to EC (endothelial cell) populations. Another way is to only plot the top ligands. Here we will use the Seurat FindMarkers program to select upregulated genes, which will be input to ``NetworkTreePlot``.
+The purpose of the tree plot, shown below, is to visualise the ligand:receptor paths between a source and a set of target cell types. The plot can easily get very 'busy' if there are too many nodes. There are a few ways to handle this. One is to reduce the number of target nodes. For this example, we will simply connect MYO (myofibroblasts) to EC (endothelial cell) populations. Another way is to only plot the top ligands. Here we will use the Seurat FindMarkers program to select upregulated genes, which will be input to ``NetworkTreePlot``.
 
 ```
 ## First, select ligands upregulated in source population
