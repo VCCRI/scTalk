@@ -102,8 +102,6 @@ PlotTopLigands <- function(input.file,
                            max.plot.num = 15,
                            title.use = NULL) {
 
-  path.sig.file = input.file
-
   path.table = read.csv(input.file, sep = ",", row.names = 1, stringsAsFactors = FALSE)
 
   source.population = paste0("S:", cell.identity)
@@ -131,7 +129,7 @@ PlotTopLigands <- function(input.file,
   }
 
   pl <- ggplot(ligand.weights.table, aes(x=reorder(Ligand, -Weight), y=Weight)) +
-    geom_bar(stat="identity", fill = col.use) + theme_classic(base_size = 1) +
+    geom_bar(stat="identity", fill = col.use) + theme_classic(base_size = 16) +
     theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
     xlab("Ligand") + ylab("Summed weight")
   if (is.null(title.use)) {
