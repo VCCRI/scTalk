@@ -105,7 +105,6 @@ PlotTopLigands <- function(input.file,
   path.table = read.csv(input.file, sep = ",", row.names = 1, stringsAsFactors = FALSE)
 
   source.population = paste0("S:", cell.identity)
-  this.col = col.set[which(p.labels == cell.identity)]
   paths.subset = subset(path.table, Source == source.population)
 
   # SET MIN WEIGHT
