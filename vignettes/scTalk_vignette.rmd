@@ -1,5 +1,5 @@
 ---
-title: "scTalk: Intercellular communication analysis toolkit for scRNA-seq data"
+title: "scTalk: Intercellular communication analysis and visualisation toolkit for scRNA-seq data"
 author: 
   - name: Ralph Patrick
     affiliation: Developmental and Stem Cell Biology Division, Victor Chang Cardiac Research Institute
@@ -230,14 +230,19 @@ knitr::include_graphics('TIP_small_inbound_outbound.png')
 
 ### Plot top ligands
 
-To plot the top ligands in a population use the ``PlotTopLigands`` function.
+To plot the top ligands in a population use the ``PlotTopLigands`` function. Colour of the bar plot can be made to match cell identity colour scheme with the ``col.use`` parameter.
 
 ```
 ## Plot top ligands for a cell population
 path.file <- paste0(file.lab, "_network_paths_weight1.5.csv")
 cell.type <- "MYO"
 PlotTopLigands(input.file = path.file, 
+               col.use = "#0099cc",
                cell.identity = cell.type)
+```
+
+```{r topligands, out.width='100%', fig.cap = 'Top ligands plot',echo=FALSE}
+knitr::include_graphics('TopLigands.png')
 ```
 
 ### Tree plot
