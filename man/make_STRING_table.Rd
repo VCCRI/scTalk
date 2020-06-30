@@ -9,7 +9,7 @@ make_STRING_table(
   receptors,
   species = "mouse",
   dir.path = NULL,
-  string.ver = "10"
+  string.ver = NULL
 )
 }
 \arguments{
@@ -20,6 +20,8 @@ make_STRING_table(
 \item{species}{species to use - either mouse (default) or human}
 
 \item{dir.path}{output directory for storing STRINGdb data. If not provided uses current working directory}
+
+\item{string.ver}{STRING version to use. Default is unspecified (NULL).}
 }
 \value{
 a data-frame containing ligands, receptors and STRING association scores between them.

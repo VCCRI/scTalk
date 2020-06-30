@@ -143,10 +143,11 @@ get_gene_pair_expression_values <- function(ligand.receptor.pairs,
 #' @param receptors a vector of receptors
 #' @param species species to use - either mouse (default) or human
 #' @param dir.path output directory for storing STRINGdb data. If not provided uses current working directory
+#' @param string.ver STRING version to use. Default is unspecified (NULL). 
 #' @return a data-frame containing ligands, receptors and STRING association scores between them.
 #' @examples
 #' PlotTopLigands(path.table = example.table, this.population = '1')
-make_STRING_table <- function(ligands, receptors, species = "mouse", dir.path = NULL, string.ver = "10") {
+make_STRING_table <- function(ligands, receptors, species = "mouse", dir.path = NULL, string.ver = NULL) {
   ## Gene names that aren't automatically mapped to STRING and need to be mapped to alternative identifier
   ## Ackr3 -> Cxcr7
   string.chromium.map = c("Ackr3")
@@ -174,7 +175,12 @@ make_STRING_table <- function(ligands, receptors, species = "mouse", dir.path = 
     }
 
   ## Connect to the STRINGdb
-  string_db <- STRINGdb::STRINGdb$new(version=string.ver, species=species.id, score_threshold=0, input_directory=string.dir)
+  if (is.null(string.ver)) {
+    string_db <- STRINGdb::STRINGdb$new(species=species.id, score_threshold=0, input_directory=string.dir)
+
+  } else {
+    string_db <- STRINGdb::STRINGdb$new(version=string.ver, species=species.id, score_threshold=0, input_directory=string.dir)
+  }
 
   ## For this analysis only one gene that needs to be mapped
   gene.table = data.frame(Gene = as.character(unique(ligands)), Class = "ligand")

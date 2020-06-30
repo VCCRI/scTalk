@@ -9,7 +9,8 @@ GenerateEdgeWeights(
   file.label,
   species,
   populations.use = NULL,
-  string.dir = NULL
+  string.dir = NULL,
+  string.ver = NULL
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ GenerateEdgeWeights(
 \item{populations.use}{threshold of percentage of cells expressing the gene in a cluster for it to be considered expressed}
 
 \item{string.dir}{directory for storing STRING data (defaults to working directory)}
+
+\item{string.ver}{version of STRING data-base to use. Not set by default.}
 }
 \value{
 NULL - results written to file
