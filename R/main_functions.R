@@ -12,7 +12,8 @@
 #' @param species expression threshold for considering a gene expressed in a cell
 #' @param populations.use threshold of percentage of cells expressing the gene in a cluster for it to be considered expressed
 #' @param string.dir directory for storing STRING data (defaults to working directory)
-#' @param string.ver version of STRING data-base to use. Not set by default. 
+#' @param string.ver version of STRING data-base to use. Not set by default.
+#' @param verbose whether to print additional information about run (default: FALSE)
 #'
 #' @return NULL - results written to file
 #'
@@ -23,7 +24,8 @@ GenerateEdgeWeights <- function(seurat.object,
                                 species,
                                 populations.use = NULL,
                                 string.dir = NULL,
-                                string.ver = NULL) {
+                                string.ver = NULL,
+                                verbose = FALSE) {
 
   if (is.null(populations.use)) {
     populations.use <- names(table(Idents(seurat.object)))
@@ -87,7 +89,10 @@ GenerateEdgeWeights <- function(seurat.object,
                                                    mapping.table = ligand.receptor.mappings,
                                                    cluster.names = populations.use,
                                                    gene.de.results = de.results)
-  dim(all.de.results)
+  if (verbose) {
+    print(paste(nrow(all.de.results), " potential paths in data. Some examples:"))
+    print(head(all.de.results))
+    }
 
 
   ### Pull out connections for clusters of interest and add weights
@@ -102,12 +107,16 @@ GenerateEdgeWeights <- function(seurat.object,
   ligands = as.character(ligand.receptor.edges[, 1])
   receptors = as.character(ligand.receptor.edges[, 2])
 
+  if (verbose) print(paste0(length(unique(ligands)), " ligands to score in STRING"))
+  if (verbose) print(paste0(length(unique(receptors)), " receptors score in STRING"))
+
   ### Here use the STRING data-base to give mouse-specific scores to ligand-receptor relationships
   lr_score_table = make_STRING_table(ligands = ligands,
                                      receptors = receptors,
                                      dir.path = string.dir,
-                                     string.ver = string.ver)
-  head(lr_score_table) ## print out some interactions
+                                     string.ver = string.ver,
+                                     verbose = verbose)
+  if (verbose) print(head(lr_score_table)) ## print out some interactions
 
   overlapping.genes = intersect(pair.identifiers, rownames(lr_score_table))
   print(paste0(length(overlapping.genes), " overlaps between ligand-receptor map and STRINGdb"))

@@ -10,7 +10,8 @@ GenerateEdgeWeights(
   species,
   populations.use = NULL,
   string.dir = NULL,
-  string.ver = NULL
+  string.ver = NULL,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ GenerateEdgeWeights(
 \item{string.dir}{directory for storing STRING data (defaults to working directory)}
 
 \item{string.ver}{version of STRING data-base to use. Not set by default.}
+
+\item{verbose}{whether to print additional information about run (default: FALSE)}
 }
 \value{
 NULL - results written to file

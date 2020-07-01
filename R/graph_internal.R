@@ -143,11 +143,14 @@ get_gene_pair_expression_values <- function(ligand.receptor.pairs,
 #' @param receptors a vector of receptors
 #' @param species species to use - either mouse (default) or human
 #' @param dir.path output directory for storing STRINGdb data. If not provided uses current working directory
-#' @param string.ver STRING version to use. Default is unspecified (NULL). 
+#' @param string.ver STRING version to use. Default is unspecified (NULL).
+#' @param verbose whether to print additional information about run (default: FALSE)
 #' @return a data-frame containing ligands, receptors and STRING association scores between them.
+#'
 #' @examples
 #' PlotTopLigands(path.table = example.table, this.population = '1')
-make_STRING_table <- function(ligands, receptors, species = "mouse", dir.path = NULL, string.ver = NULL) {
+make_STRING_table <- function(ligands, receptors, species = "mouse", dir.path = NULL,
+                              string.ver = NULL, verbose = FALSE) {
   ## Gene names that aren't automatically mapped to STRING and need to be mapped to alternative identifier
   ## Ackr3 -> Cxcr7
   string.chromium.map = c("Ackr3")
@@ -174,6 +177,7 @@ make_STRING_table <- function(ligands, receptors, species = "mouse", dir.path = 
     dir.create(string.dir)
     }
 
+  if (verbose) print("Connecting to STRING...")
   ## Connect to the STRINGdb
   if (is.null(string.ver)) {
     string_db <- STRINGdb::STRINGdb$new(species=species.id, score_threshold=0, input_directory=string.dir)
@@ -189,6 +193,9 @@ make_STRING_table <- function(ligands, receptors, species = "mouse", dir.path = 
 
   gene.table.mapped <- string_db$map(gene.table, "Gene", removeUnmappedRows = TRUE )
   rownames(gene.table.mapped) = gene.table.mapped$STRING_id
+
+  if (verbose) print(paste0(nrow(gene.table.mapped), " STRING results retrieved. Some examples:"))
+  if (verbose) print(head(gene.table.mapped))
 
   ## Get the list of STRING identifiers
   hits <- gene.table.mapped$STRING_id
