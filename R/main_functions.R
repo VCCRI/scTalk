@@ -115,6 +115,7 @@ GenerateEdgeWeights <- function(seurat.object,
                                      receptors = receptors,
                                      dir.path = string.dir,
                                      string.ver = string.ver,
+                                     species = species,
                                      verbose = verbose)
   if (verbose) print(head(lr_score_table)) ## print out some interactions
 

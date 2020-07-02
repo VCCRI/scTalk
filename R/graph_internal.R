@@ -149,7 +149,7 @@ get_gene_pair_expression_values <- function(ligand.receptor.pairs,
 #'
 #' @examples
 #' PlotTopLigands(path.table = example.table, this.population = '1')
-make_STRING_table <- function(ligands, receptors, species = "mouse", dir.path = NULL,
+make_STRING_table <- function(ligands, receptors, species, dir.path = NULL,
                               string.ver = NULL, verbose = FALSE) {
   ## Gene names that aren't automatically mapped to STRING and need to be mapped to alternative identifier
   ## Ackr3 -> Cxcr7
@@ -192,6 +192,7 @@ make_STRING_table <- function(ligands, receptors, species = "mouse", dir.path = 
   gene.table = rbind(gene.table, (data.frame(Gene = "Cxcr7", Class = "receptor")))
 
   gene.table.mapped <- string_db$map(gene.table, "Gene", removeUnmappedRows = TRUE )
+  gene.table.mapped %>% dplyr::distinct(STRING_id, .keep_all = TRUE) -> gene.table.mapped
   rownames(gene.table.mapped) = gene.table.mapped$STRING_id
 
   if (verbose) print(paste0(nrow(gene.table.mapped), " STRING results retrieved. Some examples:"))
