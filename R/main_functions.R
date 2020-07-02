@@ -14,8 +14,12 @@
 #' @param string.dir directory for storing STRING data (defaults to working directory)
 #' @param string.ver version of STRING data-base to use. Not set by default.
 #' @param verbose whether to print additional information about run (default: FALSE)
+#' @param string.receptors a list of receptor names that STRING recognises (if cannot map defaults)
+#' @param string.ligands a list of ligand names that STRING recegnises (if cannot map defaults)
+#' @param string.input.map named vector of STRING-compatable gene symbols with names corresponding to genes in dataset
 #'
 #' @return NULL - results written to file
+#'
 #'
 #' @export
 #'
@@ -25,6 +29,9 @@ GenerateEdgeWeights <- function(seurat.object,
                                 populations.use = NULL,
                                 string.dir = NULL,
                                 string.ver = NULL,
+                                string.receptors = NULL,
+                                string.ligands = NULL,
+                                string.input.map = NULL,
                                 verbose = FALSE) {
 
   if (is.null(populations.use)) {
@@ -54,12 +61,12 @@ GenerateEdgeWeights <- function(seurat.object,
   ligands = as.character(ligand.receptor.pairs[, 1])
   all.genes = c(receptors, ligands)
 
-  ## Map the human gene names to mouse
+  ## If mouse, maps the gene names to human. If human, mapping doesn't do anything.
   ligand.receptor.mappings = mappings[mappings[, 1] %in% all.genes, ]
-  mouse.names = rownames(seurat.object)
-  ligand.receptor.mappings = ligand.receptor.mappings[as.character(ligand.receptor.mappings[, 2]) %in% mouse.names, ]
+  gene.names = rownames(seurat.object)
+  ligand.receptor.mappings = ligand.receptor.mappings[as.character(ligand.receptor.mappings[, 2]) %in% gene.names, ]
 
-  ### Remove non-unique human -> mouse mappings
+  ### If species-mapped, removes non-unique human -> mouse mappings
   counts = table(ligand.receptor.mappings[, 1])
   counts = counts[counts==1]
   ligand.receptor.mappings = ligand.receptor.mappings[as.character(ligand.receptor.mappings[, 1]) %in% names(counts), ]
@@ -76,9 +83,9 @@ GenerateEdgeWeights <- function(seurat.object,
   ### Receptor -> Cluster
 
   unique.genes = unique(c(as.character(ligand.receptor.pairs.expressed[,1]), as.character(ligand.receptor.pairs.expressed[, 2])))
-  unique.mouse.genes = unlist(lapply(unique.genes, function(x) as.character(ligand.receptor.mappings[x, 2])))
+  unique.input.genes = unlist(lapply(unique.genes, function(x) as.character(ligand.receptor.mappings[x, 2])))
   print("Calculating cluster-specific ligand/expression characteristics")
-  de.results = calculate_cluster_specific_expression(geneList = unique.mouse.genes,
+  de.results = calculate_cluster_specific_expression(geneList = unique.input.genes,
                                                      seurat.object = seurat.object,
                                                      threshold=0.1,
                                                      cluster.set = populations.use)
@@ -111,11 +118,14 @@ GenerateEdgeWeights <- function(seurat.object,
   if (verbose) print(paste0(length(unique(receptors)), " receptors score in STRING"))
 
   ### Here use the STRING data-base to give mouse-specific scores to ligand-receptor relationships
-  lr_score_table = make_STRING_table(ligands = ligands,
-                                     receptors = receptors,
+  lr_score_table = make_STRING_table(ligands = unique(ligands),
+                                     receptors = unique(receptors),
                                      dir.path = string.dir,
                                      string.ver = string.ver,
                                      species = species,
+                                     string.receptors = string.receptors,
+                                     string.ligands = string.ligands,
+                                     string.input.map = string.input.map,
                                      verbose = verbose)
   if (verbose) print(head(lr_score_table)) ## print out some interactions
 

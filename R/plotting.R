@@ -86,7 +86,7 @@ InboundOutboundPlot <- function(input.file,
 #' @param cell.identity the name of a cell population/cluster to use
 #' @param col.use optional paramater to set colour of the bar graph.
 #' @param min.weight minimum weight for including paths in the top ligand calculations.
-#' @max.plot.num the maximum number of ligands to plot
+#' @param max.plot.num the maximum number of ligands to plot
 #' @return a ggplot2 object.
 #' @examples
 #' PlotTopLigands(path.table = example.table, cell.identity = '1')

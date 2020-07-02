@@ -11,6 +11,9 @@ GenerateEdgeWeights(
   populations.use = NULL,
   string.dir = NULL,
   string.ver = NULL,
+  string.receptors = NULL,
+  string.ligands = NULL,
+  string.input.map = NULL,
   verbose = FALSE
 )
 }
@@ -26,6 +29,12 @@ GenerateEdgeWeights(
 \item{string.dir}{directory for storing STRING data (defaults to working directory)}
 
 \item{string.ver}{version of STRING data-base to use. Not set by default.}
+
+\item{string.receptors}{a list of receptor names that STRING recognises (if cannot map defaults)}
+
+\item{string.ligands}{a list of ligand names that STRING recegnises (if cannot map defaults)}
+
+\item{string.input.map}{named vector of STRING-compatable gene symbols with names corresponding to genes in dataset}
 
 \item{verbose}{whether to print additional information about run (default: FALSE)}
 }

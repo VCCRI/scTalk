@@ -7,10 +7,13 @@
 make_STRING_table(
   ligands,
   receptors,
-  species = "mouse",
+  species,
   dir.path = NULL,
   string.ver = NULL,
-  verbose = FALSE
+  verbose = FALSE,
+  string.receptors = NULL,
+  string.ligands = NULL,
+  string.input.map = NULL
 )
 }
 \arguments{
@@ -25,6 +28,12 @@ make_STRING_table(
 \item{string.ver}{STRING version to use. Default is unspecified (NULL).}
 
 \item{verbose}{whether to print additional information about run (default: FALSE)}
+
+\item{string.receptors}{a list of receptor names that STRING recognises (if cannot map defaults)}
+
+\item{string.ligands}{a list of ligand names that STRING recegnises (if cannot map defaults)}
+
+\item{string.input.map}{named vector of STRING-compatable gene symbols with names corresponding to genes in dataset}
 }
 \value{
 a data-frame containing ligands, receptors and STRING association scores between them.
@@ -33,5 +42,13 @@ a data-frame containing ligands, receptors and STRING association scores between
 Generates a table of ligand:receptor association scores from the STRING database
 }
 \examples{
-PlotTopLigands(path.table = example.table, this.population = '1')
+
+make_STRING_table(ligands, receptors, species="mouse")
+
+## Or if STRING doesn't recognize some genes
+string.input.map <- c("Ackr3)
+names(string.input.map) <- c("Cxcr7")
+string.receptors <- c("Cxcr7)
+make_STRING_table(ligands, receptors, species="mouse", string.receptors=string.receptors, string.input.map=string.input.map)
+
 }

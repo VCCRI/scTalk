@@ -145,16 +145,30 @@ get_gene_pair_expression_values <- function(ligand.receptor.pairs,
 #' @param dir.path output directory for storing STRINGdb data. If not provided uses current working directory
 #' @param string.ver STRING version to use. Default is unspecified (NULL).
 #' @param verbose whether to print additional information about run (default: FALSE)
+#' @param string.receptors a list of receptor names that STRING recognises (if cannot map defaults)
+#' @param string.ligands a list of ligand names that STRING recegnises (if cannot map defaults)
+#' @param string.input.map named vector of STRING-compatable gene symbols with names corresponding to genes in dataset
 #' @return a data-frame containing ligands, receptors and STRING association scores between them.
 #'
 #' @examples
-#' PlotTopLigands(path.table = example.table, this.population = '1')
-make_STRING_table <- function(ligands, receptors, species, dir.path = NULL,
-                              string.ver = NULL, verbose = FALSE) {
-  ## Gene names that aren't automatically mapped to STRING and need to be mapped to alternative identifier
-  ## Ackr3 -> Cxcr7
-  string.chromium.map = c("Ackr3")
-  names(string.chromium.map) = c("Cxcr7")
+#'
+#' make_STRING_table(ligands, receptors, species="mouse")
+#'
+#' ## Or if STRING doesn't recognize some genes
+#' string.input.map <- c("Ackr3)
+#' names(string.input.map) <- c("Cxcr7")
+#' string.receptors <- c("Cxcr7)
+#' make_STRING_table(ligands, receptors, species="mouse", string.receptors=string.receptors, string.input.map=string.input.map)
+#'
+make_STRING_table <- function(ligands,
+                              receptors,
+                              species,
+                              dir.path = NULL,
+                              string.ver = NULL,
+                              verbose = FALSE,
+                              string.receptors = NULL,
+                              string.ligands = NULL,
+                              string.input.map = NULL) {
 
   ## If user does not provide a directory use the working directory
   if (is.null(dir.path)) {
@@ -189,7 +203,8 @@ make_STRING_table <- function(ligands, receptors, species, dir.path = NULL,
   ## For this analysis only one gene that needs to be mapped
   gene.table = data.frame(Gene = as.character(unique(ligands)), Class = "ligand")
   gene.table = rbind(gene.table, (data.frame(Gene = as.character(unique(receptors)), Class = "receptor")))
-  gene.table = rbind(gene.table, (data.frame(Gene = "Cxcr7", Class = "receptor")))
+  if (!is.null(string.ligands)) {gene.table = rbind(gene.table, data.frame(Gene=string.ligands, Class="ligand"))}
+  if (!is.null(string.receptors)) {gene.table = rbind(gene.table, data.frame(Gene=string.ligands, Class="receptor"))}
 
   gene.table.mapped <- string_db$map(gene.table, "Gene", removeUnmappedRows = TRUE )
   gene.table.mapped %>% dplyr::distinct(STRING_id, .keep_all = TRUE) -> gene.table.mapped
@@ -214,16 +229,18 @@ make_STRING_table <- function(ligands, receptors, species, dir.path = NULL,
 
   gene.interactions.table.subset = gene.interactions.table[, c("from.gene", "to.gene", "combined_score")]
 
-  ## Replace STRING gene names with original gene names in the from column
-  replace.index = gene.interactions.table.subset$from.gene %in% names(string.chromium.map)
-  if (sum(replace.index) > 0) {
-    gene.interactions.table.subset[replace.index, 1] = as.character(string.chromium.map[gene.interactions.table.subset[replace.index, 1]])
-  }
+  if (!is.null(string.input.map)) {
+    ## Replace STRING gene names with original gene names in the from column
+    replace.index = gene.interactions.table.subset$from.gene %in% names(string.chromium.map)
+    if (sum(replace.index) > 0) {
+      gene.interactions.table.subset[replace.index, 1] = as.character(string.chromium.map[gene.interactions.table.subset[replace.index, 1]])
+    }
 
-  ## Replace STRING gene names with original gene names in the to column
-  replace.index = gene.interactions.table.subset$to.gene %in% names(string.chromium.map)
-  if (sum(replace.index) > 0) {
-    gene.interactions.table.subset[replace.index, 2] = as.character(string.chromium.map[gene.interactions.table.subset[replace.index, 1]])
+    ## Replace STRING gene names with original gene names in the to column
+    replace.index = gene.interactions.table.subset$to.gene %in% names(string.chromium.map)
+    if (sum(replace.index) > 0) {
+      gene.interactions.table.subset[replace.index, 2] = as.character(string.chromium.map[gene.interactions.table.subset[replace.index, 1]])
+    }
   }
 
   ## Now identify all ligand-receptor interactions from the input table

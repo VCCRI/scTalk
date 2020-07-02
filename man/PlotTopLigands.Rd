@@ -21,6 +21,8 @@ PlotTopLigands(
 \item{col.use}{optional paramater to set colour of the bar graph.}
 
 \item{min.weight}{minimum weight for including paths in the top ligand calculations.}
+
+\item{max.plot.num}{the maximum number of ligands to plot}
 }
 \value{
 a ggplot2 object.
