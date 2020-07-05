@@ -40,22 +40,23 @@ GenerateEdgeWeights <- function(seurat.object,
     populations.use <- names(table(Idents(seurat.object)))
   }
 
-  ## Read in mouse to human orthologue mappings
-  extdata.path <- system.file("extdata", package = "scTalk")
-  if (species == "human") {
-    mapping.file <- paste0(extdata.path, "/human_human_ensembl_gene_names.txt")
-  } else if (species == "mouse") {
-    mapping.file <- paste0(extdata.path, "/human_mouse_ensembl_gene_mappings.txt")
-  } else{
-    stop(paste("species", species, "not currently a valid option: please specify mouse or human"))
-  }
-
-  mappings = read.csv(mapping.file, header=TRUE, stringsAsFactors = FALSE)
-
   ## Read in the ligand-receptor pairs
   ## These were taken from Ramilowski et al. (2015) Nature Communications
   ligand.receptor.pairs = read.csv(paste0(extdata.path, "/All.Pairs-Table 1.csv"),
                                    header=TRUE, row.names=1, stringsAsFactors = FALSE)
+
+  if (species == "human") {
+    ## Don't need to map, but make a dummy map to use same code as for mouse
+    gene.names <- c(ligand.receptor.pairs$Ligand.ApprovedSymbol, ligand.receptor.pairs$Receptor.ApprovedSymbol)
+    gene.names <- unique(gene.names)
+    mappings <- data.frame(Human.gene.name = gene.names, Gene.name = gene.names, stringsAsFactors = FALSE)
+  } else if (species == "mouse") {
+    mapping.file <- paste0(extdata.path, "/human_mouse_ensembl_gene_mappings.txt")
+    mappings = read.csv(mapping.file, header=TRUE, stringsAsFactors = FALSE)
+    mappings %>% dplyr::distinct(Human.gene.name, .keep_all = TRUE) -> mappings
+  } else{
+    stop(paste("species", species, "not currently a valid option: please specify mouse or human"))
+  }
 
   ## Keep pairs that are either literature supported or putative but filter out those annotated as being incorrect
   ligand.receptor.pairs = ligand.receptor.pairs[ligand.receptor.pairs[ ,"Pair.Evidence"] %in% c("literature supported", "putative"), ]
@@ -122,6 +123,7 @@ GenerateEdgeWeights <- function(seurat.object,
   ### Here use the STRING data-base to give mouse-specific scores to ligand-receptor relationships
 
   if (use.string.offline) {
+    print("Using package STRING scores")
     if (species == "human") {
       lr_score_table <- read.table(paste0(extdata.path, "/STRING_v10_human_ligand-receptor_scores.tsv"),
                                    sep="\t", header=TRUE, row.names=1, stringsAsFactors = FALSE)
