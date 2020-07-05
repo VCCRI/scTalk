@@ -9,6 +9,7 @@ GenerateEdgeWeights(
   file.label,
   species,
   populations.use = NULL,
+  use.string.offline = TRUE,
   string.dir = NULL,
   string.ver = NULL,
   string.receptors = NULL,
@@ -26,9 +27,11 @@ GenerateEdgeWeights(
 
 \item{populations.use}{threshold of percentage of cells expressing the gene in a cluster for it to be considered expressed}
 
-\item{string.dir}{directory for storing STRING data (defaults to working directory)}
+\item{use.string.offline}{whether to use packaged STRING scores (default) or retrieve online from STRINGdb}
 
-\item{string.ver}{version of STRING data-base to use. Not set by default.}
+\item{string.dir}{directory for storing retrieved online STRING data (defaults to working directory)}
+
+\item{string.ver}{version of online STRING data-base to use. Not set by default.}
 
 \item{string.receptors}{a list of receptor names that STRING recognises (if cannot map defaults)}
 

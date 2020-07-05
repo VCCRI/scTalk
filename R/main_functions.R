@@ -11,8 +11,9 @@
 #' @param file.label a Seurat object with cluster identities
 #' @param species expression threshold for considering a gene expressed in a cell
 #' @param populations.use threshold of percentage of cells expressing the gene in a cluster for it to be considered expressed
-#' @param string.dir directory for storing STRING data (defaults to working directory)
-#' @param string.ver version of STRING data-base to use. Not set by default.
+#' @param use.string.offline whether to use packaged STRING scores (default) or retrieve online from STRINGdb
+#' @param string.dir directory for storing retrieved online STRING data (defaults to working directory)
+#' @param string.ver version of online STRING data-base to use. Not set by default.
 #' @param verbose whether to print additional information about run (default: FALSE)
 #' @param string.receptors a list of receptor names that STRING recognises (if cannot map defaults)
 #' @param string.ligands a list of ligand names that STRING recegnises (if cannot map defaults)
@@ -27,6 +28,7 @@ GenerateEdgeWeights <- function(seurat.object,
                                 file.label,
                                 species,
                                 populations.use = NULL,
+                                use.string.offline = TRUE,
                                 string.dir = NULL,
                                 string.ver = NULL,
                                 string.receptors = NULL,
@@ -118,15 +120,30 @@ GenerateEdgeWeights <- function(seurat.object,
   if (verbose) print(paste0(length(unique(receptors)), " receptors score in STRING"))
 
   ### Here use the STRING data-base to give mouse-specific scores to ligand-receptor relationships
-  lr_score_table = make_STRING_table(ligands = unique(ligands),
-                                     receptors = unique(receptors),
-                                     dir.path = string.dir,
-                                     string.ver = string.ver,
-                                     species = species,
-                                     string.receptors = string.receptors,
-                                     string.ligands = string.ligands,
-                                     string.input.map = string.input.map,
-                                     verbose = verbose)
+
+  if (use.string.offline) {
+    if (species == "human") {
+      lr_score_table <- read.table(paste0(extdata.path, "/STRING_v10_human_ligand-receptor_scores.tsv"),
+                                   sep="\t", header=TRUE, row.names=1, stringsAsFactors = FALSE)
+    } else if (species == "mouse") {
+      lr_score_table <- read.table(paste0(extdata.path, "/STRING_v10_mouse_ligand-receptor_scores.tsv"),
+                                   sep="\t", header=TRUE, row.names=1, stringsAsFactors = FALSE)
+    } else{
+      stop("invalid species input - either use 'mouse' or 'human'")
+    }
+  } else {
+    ## Retrieve information direct from STRINGdb
+    lr_score_table = make_STRING_table(ligands = unique(ligands),
+                                       receptors = unique(receptors),
+                                       dir.path = string.dir,
+                                       string.ver = string.ver,
+                                       species = species,
+                                       string.receptors = string.receptors,
+                                       string.ligands = string.ligands,
+                                       string.input.map = string.input.map,
+                                       verbose = verbose)
+  }
+
   if (verbose) print(head(lr_score_table)) ## print out some interactions
 
   overlapping.genes = intersect(pair.identifiers, rownames(lr_score_table))

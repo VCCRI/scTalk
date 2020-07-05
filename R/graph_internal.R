@@ -207,10 +207,14 @@ make_STRING_table <- function(ligands,
   if (!is.null(string.receptors)) {gene.table = rbind(gene.table, data.frame(Gene=string.ligands, Class="receptor"))}
 
   if (verbose) print("Getting STRING identifier map")
+  gene.table$GeneOrig <- gene.table$Gene
   gene.table.mapped <- string_db$map(gene.table, "Gene", removeUnmappedRows = TRUE )
   if (verbose) print("Identifier map retrieved")
   gene.table.mapped %>% dplyr::distinct(STRING_id, .keep_all = TRUE) -> gene.table.mapped
   rownames(gene.table.mapped) = gene.table.mapped$STRING_id
+
+  ## Switch original gene names back
+  gene.table.mapped$Gene <- gene.table.mapped$GeneOrig
 
   if (verbose) print(paste0(nrow(gene.table.mapped), " STRING results retrieved. Some examples:"))
   if (verbose) print(head(gene.table.mapped))
