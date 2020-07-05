@@ -40,6 +40,8 @@ GenerateEdgeWeights <- function(seurat.object,
     populations.use <- names(table(Idents(seurat.object)))
   }
 
+  extdata.path <- system.file("extdata", package = "scTalk")
+
   ## Read in the ligand-receptor pairs
   ## These were taken from Ramilowski et al. (2015) Nature Communications
   ligand.receptor.pairs = read.csv(paste0(extdata.path, "/All.Pairs-Table 1.csv"),
