@@ -255,8 +255,8 @@ CellCirclePlot <- function(input.file,
   path.sig.file = input.file
 
   sig.paths = read.csv(path.sig.file, sep = ",", stringsAsFactors = FALSE)
-  #sig.paths$Source_population = sub(".:(.*)", "\\1", sig.paths$Source_population)
-  #sig.paths$Target_population = sub(".:(.*)", "\\1", sig.paths$Target_population)
+  sig.paths$Source_population <- as.character(sig.paths$Source_population)
+  sig.paths$Target_population <- as.character(sig.paths$Target_population)
 
   ## Define population colours for plotting if not provided
   if (is.null(col.set)) {
