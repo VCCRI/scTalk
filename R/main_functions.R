@@ -5,19 +5,27 @@
 #'
 #' Generates files of cluster:ligand:receptor:cluster edge weights
 #'
-#' For a Seurat object, calculates
+#' For a Seurat object, calculates all edge weights connecting source cell populations to ligands,
+#' ligands to receptors and receptors to target cell populations. Cell-ligand and receptor-cell edge weights are
+#' defined as the log2 fold-change difference in expression of the gene in that cell type relative to all other
+#' cell types in the Seurat object - as defined by the active identities. The ligand:receptor edge weights
+#' are assigned using protein:protein association scores from the STRING database.
 #'
 #' @param seurat.object a list of genes
 #' @param file.label a Seurat object with cluster identities
-#' @param species expression threshold for considering a gene expressed in a cell
+#' @param species species of the experiment - currently includes 'human' and 'mouse'
 #' @param populations.use threshold of percentage of cells expressing the gene in a cluster for it to be considered expressed
 #' @param use.string.offline whether to use packaged STRING scores (default) or retrieve online from STRINGdb
 #' @param string.dir directory for storing retrieved online STRING data (defaults to working directory)
 #' @param string.ver version of online STRING data-base to use. Not set by default.
-#' @param verbose whether to print additional information about run (default: FALSE)
 #' @param string.receptors a list of receptor names that STRING recognises (if cannot map defaults)
 #' @param string.ligands a list of ligand names that STRING recegnises (if cannot map defaults)
 #' @param string.input.map named vector of STRING-compatable gene symbols with names corresponding to genes in dataset
+#' @param string.evidence.class what STRING evidence class to use. Defaults to 'combined_score'. Alternatives are: "neighborhood",
+#'  "neighborhood_transferred", "fusion", "cooccurence", "homology", "coexpression", "coexpression_transferred", "experiments",
+#'  "experiments_transferred", "database", "database_transferred", "textmining" and "textmining_transferred"
+#'
+#' @param verbose whether to print additional information about run (default: FALSE)
 #'
 #' @return NULL - results written to file
 #'
@@ -34,6 +42,7 @@ GenerateEdgeWeights <- function(seurat.object,
                                 string.receptors = NULL,
                                 string.ligands = NULL,
                                 string.input.map = NULL,
+                                string.evidence.class = "combined_score",
                                 verbose = FALSE) {
 
   if (is.null(populations.use)) {
@@ -148,12 +157,21 @@ GenerateEdgeWeights <- function(seurat.object,
                                        verbose = verbose)
   }
 
+  if (string.evidence.class %in% colnames(lr_score_table)) {
+    lr_score_table = lr_score_table[, c("Ligand", "Receptor", string.evidence.class)]
+  } else {
+    stop(paste0("STRING evidence class ", string.evidence.class, " not in table. Available evidence types:",
+                colnames(lr_score_table)[3:length(colnames(lr_score_table))]))
+  }
+
+  colnames(lr_score_table) <- c("Ligand", "Receptor", "Score")
+
   if (verbose) print(head(lr_score_table)) ## print out some interactions
 
   overlapping.genes = intersect(pair.identifiers, rownames(lr_score_table))
   print(paste0(length(overlapping.genes), " overlaps between ligand-receptor map and STRINGdb"))
 
-  weights = lr_score_table[overlapping.genes, ]$Combined_score
+  weights = lr_score_table[overlapping.genes, ]$Score
   weights = weights/1000
 
   ligand.receptor.edges.overlap = ligand.receptor.edges[overlapping.genes, ]
@@ -330,6 +348,7 @@ GenerateNetworkPaths <- function(file.label,
 #'
 EvaluateConnections <- function(file.label,
                                 populations.test = NULL,
+                                min.weight = 1.5,
                                 num.permutations = 100000,
                                 return.results = FALSE,
                                 ncores = 1) {
@@ -363,7 +382,7 @@ EvaluateConnections <- function(file.label,
   dim(background.table)
 
   ## Read in the filtered network file
-  thisFile = paste0(file.label, "_network_paths_weight1.5.csv")
+  thisFile = paste0(file.label, "_network_paths_weight", min.weight, ".csv")
   complete.path.table = read.csv(thisFile, row.names = 1)
 
   # Set up multiple workers

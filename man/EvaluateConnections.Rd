@@ -7,6 +7,7 @@
 EvaluateConnections(
   file.label,
   populations.test = NULL,
+  min.weight = 1.5,
   num.permutations = 1e+05,
   return.results = FALSE,
   ncores = 1

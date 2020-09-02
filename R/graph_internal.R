@@ -249,6 +249,15 @@ make_STRING_table <- function(ligands,
     }
   }
 
+  all.evidence.labels <- c("neighborhood", "neighborhood_transferred",
+                           "fusion", "cooccurence", "homology", "coexpression",
+                           "coexpression_transferred", "experiments",
+                           "experiments_transferred", "database",
+                           "database_transferred", "textmining", "textmining_transferred",
+                           "combined_score")
+
+  all.evidence.labels <- intersect(all.evidence.labels, colnames(gene.interactions.table.subset))
+
   ## Now identify all ligand-receptor interactions from the input table
   lr_score_table = data.frame()
 
@@ -256,15 +265,17 @@ make_STRING_table <- function(ligands,
   for (i in c(1:nrow(gene.interactions.table.subset))) {
     gene1 = gene.interactions.table.subset[i, 1]
     gene2 = gene.interactions.table.subset[i, 2]
-    score = gene.interactions.table.subset[i, 3]
+    scores = gene.interactions.table.subset[i, all.evidence.labels]
     if ((gene1 %in% ligands) & (gene2 %in% receptors)) {
       ## Keep order
-      this.row = data.frame(Ligand = gene1, Receptor = gene2, Combined_score = score)
+      this.row = data.frame(Ligand = gene1, Receptor = gene2)
+      this.row <- cbind(this.row, scores)
       rownames(this.row) = paste0(gene1, ".", gene2)
       lr_score_table = rbind(lr_score_table, this.row)
     } else if ((gene2 %in% ligands) & (gene1 %in% receptors)) {
       ## Reverse the order
-      this.row = data.frame(Ligand = gene2, Receptor = gene1, Combined_score = score)
+      this.row = data.frame(Ligand = gene2, Receptor = gene1)
+      this.row <- cbind(this.row, scores)
       rownames(this.row) = paste0(gene2, ".", gene1)
       lr_score_table = rbind(lr_score_table, this.row)
     } ## Ignore other combinations

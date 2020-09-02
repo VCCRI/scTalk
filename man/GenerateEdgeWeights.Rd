@@ -15,6 +15,7 @@ GenerateEdgeWeights(
   string.receptors = NULL,
   string.ligands = NULL,
   string.input.map = NULL,
+  string.evidence.class = "combined_score",
   verbose = FALSE
 )
 }
@@ -23,7 +24,7 @@ GenerateEdgeWeights(
 
 \item{file.label}{a Seurat object with cluster identities}
 
-\item{species}{expression threshold for considering a gene expressed in a cell}
+\item{species}{species of the experiment - currently includes 'human' and 'mouse'}
 
 \item{populations.use}{threshold of percentage of cells expressing the gene in a cluster for it to be considered expressed}
 
@@ -39,11 +40,19 @@ GenerateEdgeWeights(
 
 \item{string.input.map}{named vector of STRING-compatable gene symbols with names corresponding to genes in dataset}
 
+\item{string.evidence.class}{what STRING evidence class to use. Defaults to 'combined_score'. Alternatives are: "neighborhood",
+"neighborhood_transferred", "fusion", "cooccurence", "homology", "coexpression", "coexpression_transferred", "experiments",
+"experiments_transferred", "database", "database_transferred", "textmining" and "textmining_transferred"}
+
 \item{verbose}{whether to print additional information about run (default: FALSE)}
 }
 \value{
 NULL - results written to file
 }
 \description{
-For a Seurat object, calculates
+For a Seurat object, calculates all edge weights connecting source cell populations to ligands,
+ligands to receptors and receptors to target cell populations. Cell-ligand and receptor-cell edge weights are
+defined as the log2 fold-change difference in expression of the gene in that cell type relative to all other
+cell types in the Seurat object - as defined by the active identities. The ligand:receptor edge weights
+are assigned using protein:protein association scores from the STRING database.
 }

@@ -102,7 +102,7 @@ file.lab <- "TIP"
 
 ```
 
-Now we'll use the ``GenerateEdgeWeights`` function to calculate weighted connections between clusters:ligands, ligands:receptors and receptors:clusters. 
+Now we'll use the ``GenerateEdgeWeights`` function to calculate weighted connections between clusters:ligands, ligands:receptors and receptors:clusters. There are a few options that can modified - see ?GenerateEdgeWeights. The species option can be set to 'mouse' or 'human' and the evidence class from STRING can be set using the string.evidence.class variable. 
 ```
 GenerateEdgeWeights(seurat.object = tip.mid7,
                     file.label = file.lab,
