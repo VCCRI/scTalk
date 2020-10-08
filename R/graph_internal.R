@@ -21,7 +21,7 @@
 #' @return a data-frame of results
 #'
 calculate_cluster_specific_expression<-function(geneList, seurat.object, exp.threshold=0,
-                                             threshold=0.5, cluster.set = NULL) {
+                                             threshold=0.1, cluster.set = NULL) {
   geneList = unique(geneList)
   results = data.frame()
   expression.matrix = Seurat::GetAssayData(seurat.object)[geneList, ]
@@ -40,7 +40,7 @@ calculate_cluster_specific_expression<-function(geneList, seurat.object, exp.thr
     gene.proportions.cluster = apply(expression.matrix[, cell.set], 1, function(x)
     {return(sum(x > exp.threshold)/length(x))})
     names(gene.proportions.cluster) = rownames(expression.matrix)
-    genes.cluster = names(gene.proportions.cluster[which(gene.proportions.cluster > threshold)])
+    genes.cluster = names(gene.proportions.cluster[which(gene.proportions.cluster >= threshold)])
     exp.percentages = gene.proportions.cluster[genes.cluster]
 
     # Calculate average log2 fold-changes for the genes in the cluster
@@ -233,7 +233,16 @@ make_STRING_table <- function(ligands,
   gene.interactions.table$from.gene = source.names
   gene.interactions.table$to.gene = target.names
 
-  gene.interactions.table.subset = gene.interactions.table[, c("from.gene", "to.gene", "combined_score")]
+  all.evidence.labels <- c("neighborhood", "neighborhood_transferred",
+                           "fusion", "cooccurence", "homology", "coexpression",
+                           "coexpression_transferred", "experiments",
+                           "experiments_transferred", "database",
+                           "database_transferred", "textmining", "textmining_transferred",
+                           "combined_score")
+  
+  all.evidence.labels <- intersect(all.evidence.labels, colnames(gene.interactions.table))
+  
+  gene.interactions.table.subset = gene.interactions.table[, c("from.gene", "to.gene", all.evidence.labels)]
 
   if (!is.null(string.input.map)) {
     ## Replace STRING gene names with original gene names in the from column
@@ -248,15 +257,6 @@ make_STRING_table <- function(ligands,
       gene.interactions.table.subset[replace.index, 2] = as.character(string.chromium.map[gene.interactions.table.subset[replace.index, 1]])
     }
   }
-
-  all.evidence.labels <- c("neighborhood", "neighborhood_transferred",
-                           "fusion", "cooccurence", "homology", "coexpression",
-                           "coexpression_transferred", "experiments",
-                           "experiments_transferred", "database",
-                           "database_transferred", "textmining", "textmining_transferred",
-                           "combined_score")
-
-  all.evidence.labels <- intersect(all.evidence.labels, colnames(gene.interactions.table.subset))
 
   ## Now identify all ligand-receptor interactions from the input table
   lr_score_table = data.frame()

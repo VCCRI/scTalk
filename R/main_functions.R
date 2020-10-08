@@ -15,6 +15,7 @@
 #' @param file.label a Seurat object with cluster identities
 #' @param species species of the experiment - currently includes 'human' and 'mouse'
 #' @param populations.use threshold of percentage of cells expressing the gene in a cluster for it to be considered expressed
+#' @param pct.threshold percentage of cells in a cluster expressing a gene for it to be considered
 #' @param use.string.offline whether to use packaged STRING scores (default) or retrieve online from STRINGdb
 #' @param string.dir directory for storing retrieved online STRING data (defaults to working directory)
 #' @param string.ver version of online STRING data-base to use. Not set by default.
@@ -36,6 +37,7 @@ GenerateEdgeWeights <- function(seurat.object,
                                 file.label,
                                 species,
                                 populations.use = NULL,
+                                pct.threshold = 0.1,
                                 use.string.offline = TRUE,
                                 string.dir = NULL,
                                 string.ver = NULL,
@@ -101,7 +103,7 @@ GenerateEdgeWeights <- function(seurat.object,
   print("Calculating cluster-specific ligand/expression characteristics")
   de.results = calculate_cluster_specific_expression(geneList = unique.input.genes,
                                                      seurat.object = seurat.object,
-                                                     threshold=0.1,
+                                                     threshold=pct.threshold,
                                                      cluster.set = populations.use)
 
   ## Build a table for each ligand-receptor pair as expressed in each cluster
