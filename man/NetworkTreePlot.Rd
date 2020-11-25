@@ -46,7 +46,8 @@ subsets according to adjusted P-value and plots the significant
 cell-cell connections. Uses the igraph package for network plotting.
 }
 \examples{
+\dontrun{
 NetworkTreePlot(path.file = example.file)
-
+}
 
 }

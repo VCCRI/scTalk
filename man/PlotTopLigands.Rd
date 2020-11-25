@@ -31,6 +31,8 @@ a ggplot2 object.
 Plot a bar graph of the top ligands
 }
 \examples{
+\dontrun{
 PlotTopLigands(path.table = example.table, cell.identity = '1')
+}
 
 }

@@ -42,13 +42,14 @@ a data-frame containing ligands, receptors and STRING association scores between
 Generates a table of ligand:receptor association scores from the STRING database
 }
 \examples{
-
+\dontrun{
 make_STRING_table(ligands, receptors, species="mouse")
 
 ## Or if STRING doesn't recognize some genes
-string.input.map <- c("Ackr3)
+string.input.map <- c("Ackr3")
 names(string.input.map) <- c("Cxcr7")
-string.receptors <- c("Cxcr7)
+string.receptors <- c("Cxcr7")
 make_STRING_table(ligands, receptors, species="mouse", string.receptors=string.receptors, string.input.map=string.input.map)
+}
 
 }

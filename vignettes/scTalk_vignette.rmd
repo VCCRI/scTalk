@@ -15,26 +15,26 @@ output:
 keywords: single cell RNASeq, scRNA-Seq, RNA-Sequencing, RNA-Seq, intercellular communication
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteIndexEntry{Sierra}
+  %\VignetteIndexEntry{scTalk}
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r setup,echo=FALSE}
-library(knitr)
-library(BiocStyle)
+#```{r setup,echo=FALSE}
+#library(knitr)
+#library(BiocStyle)
 
 #Color Format
-colFmt = function(x,color){
-  outputFormat = knitr::opts_knit$get("rmarkdown.pandoc.to")
-  if(outputFormat == 'latex')
-    paste("\\textcolor{",color,"}{",x,"}",sep="")
-  else if(outputFormat == 'html')
-    paste("<font color='",color,"'>",x,"</font>",sep="")
-  else
-    x
-}
+#colFmt = function(x,color){
+#  outputFormat = knitr::opts_knit$get("rmarkdown.pandoc.to")
+#  if(outputFormat == 'latex')
+#    paste("\\textcolor{",color,"}{",x,"}",sep="")
+#  else if(outputFormat == 'html')
+#    paste("<font color='",color,"'>",x,"</font>",sep="")
+#  else
+#    x
+#}
 
-```
+#```
 
 
 

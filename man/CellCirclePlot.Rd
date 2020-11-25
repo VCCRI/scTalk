@@ -31,6 +31,8 @@ subsets according to adjusted P-value and plots the significant
 cell-cell connections. Uses the igraph package for network plotting.
 }
 \examples{
-PlotTopLigands(path.table = example.table, this.population = '1')
+\dontrun{
+CellCirclePlot(input.file = input.file)
+}
 
 }

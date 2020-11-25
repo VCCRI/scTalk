@@ -33,5 +33,7 @@ out summed paths between the query source and target populations. Retain paths a
 minimum weight.
 }
 \examples{
+\dontrun{
 getWeightedPaths(edge.weight.table, source.population, target.population)
+}
 }

@@ -9,6 +9,7 @@ GenerateEdgeWeights(
   file.label,
   species,
   populations.use = NULL,
+  pct.threshold = 0.1,
   use.string.offline = TRUE,
   string.dir = NULL,
   string.ver = NULL,
@@ -27,6 +28,8 @@ GenerateEdgeWeights(
 \item{species}{species of the experiment - currently includes 'human' and 'mouse'}
 
 \item{populations.use}{threshold of percentage of cells expressing the gene in a cluster for it to be considered expressed}
+
+\item{pct.threshold}{percentage of cells in a cluster expressing a gene for it to be considered}
 
 \item{use.string.offline}{whether to use packaged STRING scores (default) or retrieve online from STRINGdb}
 

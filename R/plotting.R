@@ -15,7 +15,9 @@
 #' @param return.plot whether to return the ggplot2 object (default: TRUE)
 #' @return a ggplot2 object.
 #' @examples
+#' \dontrun{
 #' InboundOutboundPlot(path.table = example.table)
+#' }
 #'
 #' @import ggplot2
 #'
@@ -89,7 +91,9 @@ InboundOutboundPlot <- function(input.file,
 #' @param max.plot.num the maximum number of ligands to plot
 #' @return a ggplot2 object.
 #' @examples
+#' \dontrun{
 #' PlotTopLigands(path.table = example.table, cell.identity = '1')
+#' }
 #'
 #' @import ggplot2
 #'
@@ -158,7 +162,9 @@ PlotTopLigands <- function(input.file,
 #' @param do.update select graph rows to updates. All by default.
 #' @return a ggraph object with node X-coordinates rescaled.
 #' @examples
+#' \dontrun{
 #' rescale_target_node_coordinates(tree.graph)
+#' }
 rescale_node_coordinates <- function(graph, scale.by = "Ligand", do.update = c("Source", "Ligand", "Receptor", "Target")) {
   graph.data = graph$data
   scale.indicies = which(graph.data$Level == scale.by)
@@ -238,7 +244,9 @@ rescale_node_coordinates <- function(graph, scale.by = "Ligand", do.update = c("
 #' @param lab.weight.thresh minimum weight for labelling populations in the plot.
 #' @return a ggplot2 object.
 #' @examples
-#' PlotTopLigands(path.table = example.table, this.population = '1')
+#' \dontrun{
+#' CellCirclePlot(input.file = input.file)
+#' }
 #'
 #' @export
 #'
@@ -350,8 +358,9 @@ CellCirclePlot <- function(input.file,
 #' @param receptor.col colour for the row of receptors
 #' @return a ggplot2 object.
 #' @examples
+#' \dontrun{
 #' NetworkTreePlot(path.file = example.file)
-#'
+#' }
 #'
 #' @export
 #'

@@ -22,5 +22,7 @@ which are dervied from fold-change expression. The ligand:receptor weights deriv
 remain unshuffled. The weights are then summed to represent randomised source:target path weights.
 }
 \examples{
+\dontrun{
 RandomiseFCWeights(ppi.weights, cluster.ligand.table, receptor.cluster.table)
+}
 }

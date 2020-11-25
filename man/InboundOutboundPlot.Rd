@@ -33,6 +33,8 @@ a ggplot2 object.
 Generates a dot plot showing inbound vs outbound weights for all populations.
 }
 \examples{
+\dontrun{
 InboundOutboundPlot(path.table = example.table)
+}
 
 }

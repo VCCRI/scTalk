@@ -151,14 +151,15 @@ get_gene_pair_expression_values <- function(ligand.receptor.pairs,
 #' @return a data-frame containing ligands, receptors and STRING association scores between them.
 #'
 #' @examples
-#'
+#' \dontrun{
 #' make_STRING_table(ligands, receptors, species="mouse")
 #'
 #' ## Or if STRING doesn't recognize some genes
-#' string.input.map <- c("Ackr3)
+#' string.input.map <- c("Ackr3")
 #' names(string.input.map) <- c("Cxcr7")
-#' string.receptors <- c("Cxcr7)
+#' string.receptors <- c("Cxcr7")
 #' make_STRING_table(ligands, receptors, species="mouse", string.receptors=string.receptors, string.input.map=string.input.map)
+#' }
 #'
 make_STRING_table <- function(ligands,
                               receptors,
@@ -305,7 +306,9 @@ make_STRING_table <- function(ligands,
 #' @param print.num.connections whether to print the number of paths passing the min weight threshold (False by default)
 #' @return a vector of source:target path weights
 #' @examples
+#' \dontrun{
 #' getWeightedPaths(edge.weight.table, source.population, target.population)
+#' }
 get_weighted_paths <- function(edge.weight.table, source.population, target.population,
                              min.weight = 1.5, print.num.connections = FALSE) {
   ## put edges in format for creating a graph
@@ -363,7 +366,9 @@ get_weighted_paths <- function(edge.weight.table, source.population, target.popu
 #' @param receptor.cluster.table species to use - either mouse (default) or human
 #' @return a vector of source:target path weights
 #' @examples
+#' \dontrun{
 #' RandomiseFCWeights(ppi.weights, cluster.ligand.table, receptor.cluster.table)
+#' }
 randomise_FC_weights <- function(ppi.weights, cluster.ligand.table, receptor.cluster.table) {
 
   sample.size = length(ppi.weights)

@@ -13,6 +13,7 @@ Imports:
     Seurat,
     ggplot2,
     dplyr,
+    magrittr,
     igraph,
     ggraph,
     foreach,
@@ -22,5 +23,7 @@ Imports:
     multtest,
     BiocStyle,
     scales
-RoxygenNote: 7.1.0
 VignetteBuilder: knitr
+Suggests: knitr, rmarkdown
+RoxygenNote: 7.1.0
+

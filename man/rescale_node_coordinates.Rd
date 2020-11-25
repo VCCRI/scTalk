@@ -28,5 +28,7 @@ row - ligands by default, but probably works best when specified as the row with
 of nodes. Can select rows to rescale, though all are done by default.
 }
 \examples{
+\dontrun{
 rescale_target_node_coordinates(tree.graph)
+}
 }
