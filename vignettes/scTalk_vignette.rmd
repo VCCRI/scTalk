@@ -19,24 +19,6 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-#```{r setup,echo=FALSE}
-#library(knitr)
-#library(BiocStyle)
-
-#Color Format
-#colFmt = function(x,color){
-#  outputFormat = knitr::opts_knit$get("rmarkdown.pandoc.to")
-#  if(outputFormat == 'latex')
-#    paste("\\textcolor{",color,"}{",x,"}",sep="")
-#  else if(outputFormat == 'html')
-#    paste("<font color='",color,"'>",x,"</font>",sep="")
-#  else
-#    x
-#}
-
-#```
-
-
 
 # Introduction
 
