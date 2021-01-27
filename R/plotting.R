@@ -382,27 +382,27 @@ NetworkTreePlot <- function(path.file,
 
   ## if a set of receptors has been provided, subset the path table accordingly
   if (!is.null(receptor.set)) {
-    path.table <- path.table[path.table$Receptor %in% receptor.set, ]
+    path.table <- dplyr::filter(path.table, Receptor %in% receptor.set)
   } else if (!is.null(target.marker.genes)) {
-    path.table <- path.table[path.table$Receptor %in% target.marker.genes, ]
+    path.table <- dplyr::filter(path.table, Receptor %in% target.marker.genes)
   }
 
   ## if a set of ligands has been provided, subset the path table accordingly
   if (!is.null(ligand.set)) {
-    path.table <- path.table[path.table$Ligand %in% ligand.set, ]
+    path.table <- dplyr::filter(path.table, Ligand %in% ligand.set)
   } else if (!is.null(source.marker.genes)) {
-    path.table <- path.table[path.table$Ligand %in% source.marker.genes, ]
+    path.table <- dplyr::filter(path.table, Ligand %in% source.marker.genes)
   }
 
   population.labels <- union(source.population, target.populations)
 
   ## subset according to the source population
   source.population <- paste0("S:", source.population)
-  path.table <- path.table[path.table$Source == source.population, ]
+  path.table <- dplyr::filter(path.table, Source %in% source.population)
 
   ## If target populations have been provided, subset the table
   target.populations <- paste0("T:", target.populations)
-  this.path.table <- path.table[path.table$Target %in% target.populations, ]
+  this.path.table <- dplyr::filter(path.table, Target %in% target.populations)
 
 
 
