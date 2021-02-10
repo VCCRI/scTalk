@@ -7,6 +7,7 @@
 CellCirclePlot(
   input.file,
   adj_pval_thresh = 0.05,
+  title = NULL,
   col.set = NULL,
   arrow.size = 0.6,
   arrow.width = 2,
@@ -17,6 +18,8 @@ CellCirclePlot(
 \item{input.file}{input file}
 
 \item{adj_pval_thresh}{adjusted p-value threshold for defining significance}
+
+\item{title}{optional title for the plot}
 
 \item{col.set}{named vector of colour codes to fill node colours}
 

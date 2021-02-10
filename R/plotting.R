@@ -240,6 +240,7 @@ rescale_node_coordinates <- function(graph, scale.by = "Ligand", do.update = c("
 #'
 #' @param input.file input file
 #' @param adj_pval_thresh adjusted p-value threshold for defining significance
+#' @param title optional title for the plot
 #' @param col.set named vector of colour codes to fill node colours
 #' @param lab.weight.thresh minimum weight for labelling populations in the plot.
 #' @return a ggplot2 object.
@@ -254,6 +255,7 @@ rescale_node_coordinates <- function(graph, scale.by = "Ligand", do.update = c("
 #'
 CellCirclePlot <- function(input.file,
                            adj_pval_thresh = 0.05,
+                           title = NULL,
                            col.set = NULL,
                            arrow.size = 0.6,
                            arrow.width = 2.0,
@@ -329,11 +331,23 @@ CellCirclePlot <- function(input.file,
 
   layout = "layout_in_circle"
   l <- do.call(layout, list(lr.plot))
-  par(mar=c(0,0,0,0)+.1)
-  plot(lr.plot, edge.curved = 0.2, vertex.color=vertex.colors,
-       layout=l, vertex.label.cex=1.1, edge.arrow.size=arrow.size, edge.arrow.width=arrow.width, vertex.size=18,
-       vertex.label.font=2, vertex.label.color="black", edge.color = edge.colours)
 
+  #plot(lr.plot, edge.curved = 0.2, vertex.color=vertex.colors,
+  #     layout=l, vertex.label.cex=1.1, edge.arrow.size=arrow.size, edge.arrow.width=arrow.width, vertex.size=18,
+  #     vertex.label.font=2, vertex.label.color="black", edge.color = edge.colours)
+
+  if (!is.null(title)) {
+    par(mar=c(0,0,0.9,0)+.1)
+    plot(lr.plot, edge.curved = 0.2, vertex.color=vertex.colors,
+         layout=l, vertex.label.cex=1.1, edge.arrow.size=arrow.size, edge.arrow.width=arrow.width, vertex.size=18,
+         vertex.label.font=2, vertex.label.color="black", edge.color = edge.colours)
+    title(main = title, line = -0.4, cex.main = 1.5)
+  } else{
+    par(mar=c(0,0,0,0)+.1)
+    plot(lr.plot, edge.curved = 0.2, vertex.color=vertex.colors,
+         layout=l, vertex.label.cex=1.1, edge.arrow.size=arrow.size, edge.arrow.width=arrow.width, vertex.size=18,
+         vertex.label.font=2, vertex.label.color="black", edge.color = edge.colours)
+  }
 
 }
 

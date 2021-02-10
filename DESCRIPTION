@@ -1,7 +1,7 @@
 Package: scTalk
 Type: Package
 Title: Single-cell talk - an R package for analysis of cell-cell communication networks from single-cell data.
-Version: 0.2.0
+Version: 0.2.1
 Author: Ralph Patrick
 Maintainer: Ralph Patrick <ralph.j.patrick@gmail.com>
 Description: TODO
