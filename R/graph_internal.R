@@ -37,7 +37,7 @@ calculate_cluster_specific_expression<-function(geneList, seurat.object, exp.thr
     remainder.set = names(Idents(seurat.object)[Idents(seurat.object) != cluster])
 
     # Get genes expressed in the foreground set
-    gene.proportions.cluster = apply(expression.matrix[, cell.set], 1, function(x)
+    gene.proportions.cluster = apply(expression.matrix[, cell.set, drop = F], 1, function(x)
     {return(sum(x > exp.threshold)/length(x))})
     names(gene.proportions.cluster) = rownames(expression.matrix)
     genes.cluster = names(gene.proportions.cluster[which(gene.proportions.cluster >= threshold)])
@@ -240,9 +240,9 @@ make_STRING_table <- function(ligands,
                            "experiments_transferred", "database",
                            "database_transferred", "textmining", "textmining_transferred",
                            "combined_score")
-  
+
   all.evidence.labels <- intersect(all.evidence.labels, colnames(gene.interactions.table))
-  
+
   gene.interactions.table.subset = gene.interactions.table[, c("from.gene", "to.gene", all.evidence.labels)]
 
   if (!is.null(string.input.map)) {
